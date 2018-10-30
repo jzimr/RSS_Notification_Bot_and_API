@@ -1,0 +1,3 @@
+package main
+
+var token = "" //THIS IS A PRIVATE KEY. DONT UPLOAD WHEN THIS IS POPULATED!
