@@ -68,6 +68,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "Commands")
 	}
 
+	// Try to find a webpages' RSS
+	if strings.HasPrefix(strings.ToLower(m.Content), "!newrss") {
+		words := strings.Split(m.Content, " ")
+		if len(words) == 2 {
+			link, err := Crawl(words[1])
+			if err != nil {
+				s.ChannelMessageSend(m.ChannelID, err.Error()) // Perhaps change to log.print instead?
+				return
+			}
+			s.ChannelMessageSend(m.ChannelID, "Found a RSS link: "+link)
+		}
+	}
+
 }
 
 // This function will be called (due to AddHandler above) every time a new
