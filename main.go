@@ -38,6 +38,9 @@ func main() {
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Discord bot is now running.  Press CTRL-C to exit.")
 
+	//Init and start the router
+	routerInit()
+
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
@@ -81,6 +84,32 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
+	if strings.HasPrefix(strings.ToLower(m.Content), "!testembed") {
+
+		//We want to pass a json struct with the function
+		embedMessage(s, m)
+
+	}
+
+}
+
+//We need to replace all data with the data from the json struct
+func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	var testEmbed discordgo.MessageEmbed
+	testEmbed.Color = 245
+	testEmbed.URL = "http://localhost"
+	testEmbed.Title = "A title of something goes here"
+	testEmbed.Description = "Something about something something goes here"
+
+	var testEmbedFooter discordgo.MessageEmbedFooter
+	testEmbedFooter.Text = "Article pulled from XXX.XXX"
+	testEmbed.Footer = &testEmbedFooter
+
+	var testEmbedImage discordgo.MessageEmbedImage
+	testEmbed.Image = &testEmbedImage
+	testEmbedImage.URL = "https://i.imgur.com/aSVjtu7.png"
+
+	s.ChannelMessageSendEmbed(m.ChannelID, &testEmbed)
 }
 
 // This function will be called (due to AddHandler above) every time a new
