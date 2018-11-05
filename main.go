@@ -84,6 +84,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
+	//Only for testing purposes. Need to change later.
 	if strings.HasPrefix(strings.ToLower(m.Content), "!testembed") {
 
 		//We want to pass a json struct with the function
@@ -94,6 +95,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 //We need to replace all data with the data from the json struct
+//We also do not want to use the m variable. Use channel id from db
 func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var testEmbed discordgo.MessageEmbed
 	testEmbed.Color = 245

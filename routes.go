@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+//Post
 func addRss(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode("Not yet implemented")
 	if err != nil {
@@ -13,6 +14,7 @@ func addRss(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//Get by ChannelID
 func listRss(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode("Not yet implemented")
 	if err != nil {
