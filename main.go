@@ -13,6 +13,9 @@ import (
 )
 
 func main() {
+	// Initialize the database
+	DBInit()
+
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
