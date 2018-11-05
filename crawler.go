@@ -6,16 +6,34 @@ after links that contain "rss", and returns them
 */
 
 import (
-	"encoding/xml"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"golang.org/x/net/html"
 )
+
+/*
+Checks whether a given webpage (URL) is of RSS format
+*/
+func isPageRSS(URL string) (isRSS bool) {
+	resp, err := http.Get(URL)
+	if err != nil {
+		log.Println("An error occured while trying to make GET request, " + err.Error())
+		return false
+	}
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	if strings.HasPrefix(string(body), "<?xml version=") {
+		return true
+	}
+	return false
+}
 
 /*
 Searches through a webpage's source and returns all links that have "rss" in them
@@ -27,8 +45,6 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 		return nil
 	}
 	defer resp.Body.Close()
-
-	fmt.Println(URL)
 
 	z := html.NewTokenizer(resp.Body)
 
@@ -43,8 +59,14 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 			t := z.Token()
 
 			for _, a := range t.Attr {
-				if a.Key == "href" {
-					if strings.Contains(a.Val, "rss") && isPageRSS(a.Val) {
+				if a.Key == "href" && strings.Contains(a.Val, "rss") {
+					//Check if link on the page is valid
+					_, err := url.ParseRequestURI(a.Val)
+					if err != nil {
+						continue
+					}
+
+					if isPageRSS(a.Val) {
 						rssLinks = append(rssLinks, a.Val)
 					}
 				}
@@ -55,70 +77,65 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 }
 
 /*
-Checks whether a given webpage (URL) is of RSS format
-*/
-func isPageRSS(URL string) (isRSS bool) {
-	resp, err := http.Get(URL)
-	if err != nil {
-		log.Println("An error occured while trying to make GET request, " + err.Error())
-		return false
-	}
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	decoder := xml.NewDecoder(strings.NewReader(string(body)))
-
-	for {
-		t, err := decoder.Token()
-		if err != nil {
-			if err == io.EOF {
-				return false
-			}
-			return false
-		}
-
-		// Search for "rss" node
-		if v, ok := t.(xml.StartElement); ok {
-			if v.Name.Local == "rss" {
-				return true
-			}
-		}
-	}
-}
-
-/*
 ---(WIP) Make a google search based on the given URL to find RSS links (WIP)---
 */
 func googleSearchRssLinks(keyword string) (rssLinks []string) {
-	URL := "https://www.google.no/search?q=" + keyword + "+rss"
-	var result []string
+	URL := "https://www.google.com/search?q=" + keyword + "+rss"
+	var links []string
+
+	// Make GET request
+	baseClient := &http.Client{}
+	req, _ := http.NewRequest("GET", URL, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
+	resp, err := baseClient.Do(req)
+	if err != nil {
+		log.Println("An error occured while trying to make GET requestsssss, " + err.Error())
+		return
+	}
+	defer resp.Body.Close()
 
 	// Google search results
-	result = fetchRSSLinks(URL)
+	result, err := googleResultParser(resp)
+	if err != nil {
+		log.Println("An error occured while trying to parse google result page, " + err.Error())
+		return
+	}
 
+	// Check for results
 	if len(result) == 0 {
 		log.Println("Google could not find any search results with the given keyword: " + keyword)
 		return
 	}
 
+	// Go through the first three results and check for RSS
 	for i := 0; i < 3; i++ {
-		if strings.Contains(result[i], keyword) && strings.Contains(result[i], "rss") {
-			tempLinks := fetchRSSLinks(result[i])
+		fmt.Println(result[i].ResultURL)
+		if strings.Contains(result[i].ResultURL, keyword) {
+			// If page we found on google already is .rss page
+			if isPageRSS(result[i].ResultURL) {
+				fmt.Println("yop")
+				links = append(links, result[i].ResultURL)
+				break
+			}
+
+			tempLinks := fetchRSSLinks(result[i].ResultURL)
 			if len(tempLinks) != 0 {
-				result = tempLinks
+				links = tempLinks
 				break
 			}
 		}
 	}
-	return result
+
+	return links
 }
 
 /*
 	Todo:
 	1. Add support for multiple RSS links, and let the user choose which ones to include
-	2. Webcrawl through google search on the main website and check for RSS links (Smart crawler)
+	2. Webcrawl through google search on the main website and check for RSS links (Smart crawler) (DONE)
 	3. Reddit Automatic RSS?
 	3.5 Make bot post image on how-to-guide on how to get rss feeds from reddit if RSS search failed
+	4. Create google searches based on the users geographical location (E.g. google.co.uk, google.de, google.com, google.no, ...)
 
 	Improving crawler (How it should check for RSS given a link):
 	1. Search through the webpage's source code afteran "rss" link (DONE)
