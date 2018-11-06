@@ -77,7 +77,7 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 }
 
 /*
----(WIP) Make a google search based on the given URL to find RSS links (WIP)---
+Make a google search based on the given URL to find RSS links
 */
 func googleSearchRssLinks(keyword string) (rssLinks []string) {
 	URL := "https://www.google.com/search?q=" + keyword + "+rss"

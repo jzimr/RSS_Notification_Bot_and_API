@@ -31,7 +31,7 @@ func DBInit() {
 - addDiscord(d Discord) Discord
 - getDiscord(s string) Discord
 - deleteDiscord(d Discord)
--
+- updateDiscord(d Discord)
 --------------------------------------------Discord--------------------------------------------
 */
 
@@ -39,6 +39,7 @@ func DBInit() {
 addDiscord adds
 */
 func (db *DBInfo) addDiscord(d Discord) Discord {
+
 	// Creates a connection
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
