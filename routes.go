@@ -21,3 +21,7 @@ func listRss(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 }
+
+//Delete by ID
+
+//Webhooks?
