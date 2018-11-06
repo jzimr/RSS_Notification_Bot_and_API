@@ -101,7 +101,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 //We also do not want to use the m variable. Use channel id from db
 func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var testEmbed discordgo.MessageEmbed
-	testEmbed.Color = 245
+	testEmbed.Color = 245 //This should be changed
 	testEmbed.URL = "http://localhost"
 	testEmbed.Title = "A title of something goes here"
 	testEmbed.Description = "Something about something something goes here"
@@ -121,8 +121,24 @@ func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 // guild is joined.
 func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 
+	//The server is down or deleted
 	if event.Guild.Unavailable {
+		fmt.Printf("\nWas not able to connect to %s", event.Guild.ID)
 		return
 	}
+
+	//Prints server ID
+	fmt.Printf("\nWas able to connect to %s", event.Guild.ID)
+
+	/* Iterate over connected servers and get channel info
+	channels, err := s.GuildChannels(event.Guild.ID)
+	if err != nil {
+
+	}
+
+	for i := range channels {
+		fmt.Println("\n", channels[i].ID, channels[i].Name)
+	}
+	*/
 
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func routerInit() {
-	//Setup router for API
+	//Setup router for APIw
 	router := mux.NewRouter().StrictSlash(true)
 
 	addRoutes(router)
