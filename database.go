@@ -25,6 +25,12 @@ func DBInit() {
 	db.CollectionRSS = "RSS"
 }
 
+/*
+	!!TEMPORARY!!
+*/
+type User struct {
+}
+
 // addUser adds new users to the database
 func (db *DBInfo) addUser(u User) User {
 	// Creates a connection

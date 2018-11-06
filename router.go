@@ -19,7 +19,6 @@ func routerInit() {
 func addRoutes(r *mux.Router) {
 
 	//Routes located in routes.go
-	r.HandleFunc("/api/rss", addRss).Methods("POST")
-	r.HandleFunc("/api/rss/{id}", listRss).Methods("GET")
-
+	r.HandleFunc("/api/{serverid}/rss", addRss).Methods("POST") // Subscribe to a new rss feed on {serverid}
+	r.HandleFunc("/api/{serverid}/rss", listRss).Methods("GET") // List all rss feeds currently subscribed on {serverid}
 }
