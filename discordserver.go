@@ -1,8 +1,7 @@
 package main
 
 // User is added to the database
-type User struct {
-	UserTag   string `json:"userTag"`
+type DiscordServer struct {
 	DiscordID string `json:"discordId"`
 	RSSURL    string `json:"rssurl"`
 }
