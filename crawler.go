@@ -113,7 +113,6 @@ func googleSearchRssLinks(keyword string) (rssLinks []string) {
 		if strings.Contains(result[i].ResultURL, keyword) {
 			// If page we found on google already is .rss page
 			if isPageRSS(result[i].ResultURL) {
-				fmt.Println("yop")
 				links = append(links, result[i].ResultURL)
 				break
 			}
@@ -136,32 +135,26 @@ func googleSearchRssLinks(keyword string) (rssLinks []string) {
 	3. Reddit Automatic RSS?
 	3.5 Make bot post image on how-to-guide on how to get rss feeds from reddit if RSS search failed
 	4. Create google searches based on the users geographical location (E.g. google.co.uk, google.de, google.com, google.no, ...)
-
-	Improving crawler (How it should check for RSS given a link):
-	1. Search through the webpage's source code afteran "rss" link (DONE)
-	2.1. Slice the URL to get the main name (between www. and .com)
-	2.2. Create a google search URL: "Google/search/" + slicedURL + "%20rss"
-	2.3. Get the first x results and add these pages to the webcrawler queue
-	2.4. Repeat Step 1 for each page from queue
-	3. If no pages found, return "Not Found" to user
 */
 
 /*
 Crawl returns a link to the RSS of the URL provided, or err if none found
 */
-func Crawl(URL string) (RSSLink string, err error) {
+func Crawl(URL string) (RSSLinks []string, err error) {
 	if !strings.Contains(URL, "http://") && !strings.Contains(URL, "https://") {
 		URL = "http://" + URL
 	}
+	var links []string
 
 	// Check if user already sends us an RSS link
 	if isPageRSS(URL) {
 		log.Println("\"" + URL + "\" is already a .rss file")
-		return URL, nil
+		links = append(links, URL)
+		return links, nil
 	}
 
 	// Search through the webpage's source code after an "rss" link
-	links := fetchRSSLinks(URL)
+	links = fetchRSSLinks(URL)
 
 	// If none found, Try the google searching method
 	if len(links) == 0 {
@@ -178,13 +171,14 @@ func Crawl(URL string) (RSSLink string, err error) {
 
 		// Execute searching method
 		links = googleSearchRssLinks(keyword)
+		fmt.Println(len(links))
 	}
 
 	// Still no results? Might as well give up.
 	if len(links) == 0 {
-		return "", fmt.Errorf("No RSS link found on the given webpage")
+		return nil, fmt.Errorf("No RSS link found on the given webpage")
 	}
 
 	// If there are more links, we just return the first one (Room for improvement here!)
-	return links[0], nil
+	return links, nil
 }

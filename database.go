@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
@@ -223,4 +224,69 @@ func (db *DBInfo) getAllRSS() []RSS {
 		fmt.Printf("Error in getAllRSS(): %v", err.Error())
 	}
 	return r
+}
+
+/*
+Used for "manageSubscription" to decide if we want to add or remove
+an rss file from a discord server
+*/
+const (
+	add    = iota
+	remove = iota
+)
+
+/*
+!!!NOT TESTED!!!
+manageSubscription adds/removes a particular RSS feed from a server
+!!!NOT TESTED!!!
+*/
+func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int) (success bool) {
+	// Check if discord server even exists
+	_, err := db.getDiscord(serverID)
+	if err != nil {
+		fmt.Printf("Error while trying to get discord server with ID: " + serverID + ", " + err.Error())
+		return false
+	}
+	rss := db.getRSS(rssURL)
+
+	// Check if discord server is subscribed to RSS feed or not
+	var index int
+	for index = range rss.DiscordServers {
+		if rss.DiscordServers[index] == serverID {
+			break
+		}
+		index = -1
+	}
+
+	// New subscription
+	if option == add {
+		// If discord server is already subscribed
+		if index != -1 {
+			fmt.Printf("Discord server " + serverID + " is already subscribed to RSS feed " + rssURL)
+			return false
+		}
+		// Add the new RSS feed to collection
+		if len(rss.DiscordServers) == 0 {
+			rss = db.addRSS(rssURL)
+		}
+
+		// Subscribe server to RSS feed
+		rss.DiscordServers = append(rss.DiscordServers, serverID)
+		db.updateRSS(rss)
+
+		return true
+		// Remove subscription
+	} else if option == remove {
+		// Can't remove something that doesn't exist
+		if index == -1 {
+			fmt.Printf("Discord server " + serverID + " is not subscribed to RSS feed " + rssURL + ". So there's nothing to remove.")
+			return false
+		}
+
+		// Remove subscription of server to RSS feed
+		rss.DiscordServers = append(rss.DiscordServers[:index], rss.DiscordServers[index+1:]...)
+		return true
+	} else {
+		panic("Wrong use of 'option' parameter in manageSubscription(), value must be either 0 or 1. Value received: " + strconv.Itoa(option))
+	}
 }

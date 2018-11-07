@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -79,15 +80,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Try to find a webpages' RSS
 	if strings.HasPrefix(strings.ToLower(m.Content), "!newrss") {
-		words := strings.Split(m.Content, " ")
-		if len(words) == 2 {
-			link, err := Crawl(words[1])
-			if err != nil {
-				s.ChannelMessageSend(m.ChannelID, err.Error()) // Perhaps change to log.print instead?
-				return
-			}
-			s.ChannelMessageSend(m.ChannelID, "Found a RSS link: "+link)
-		} //else statement to give user feedback?
+		getRSSFeeds(s, m)
 	}
 
 	//Only for testing purposes. Need to change later.
@@ -134,6 +127,38 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 }
 
+/*
+getRSSFeeds gets rss feeds and lets the user choose which feeds to
+subscribe to
+*/
+func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
+	words := strings.Split(m.Content, " ")
+	if len(words) == 2 {
+		links, err := Crawl(words[1])
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error()) // Perhaps change to log.print instead?
+			return
+		}
+
+		var message string
+
+		if len(links) == 1 {
+			message = "Found a RSS feed: " + links[0]
+		} else {
+			message = "Found multiple RSS feeds:\n"
+			for i := 0; i < 20; i++ {
+				message += strconv.Itoa(i+1) + ". " + links[i] + "\n"
+			}
+			message += "Select multiple feeds by putting a space in-between numbers. E.g. 1 10 23"
+		}
+		s.ChannelMessageSend(m.ChannelID, message)
+
+		// TODO: Better formatting
+		// Add feature to listen to what user types (Maybe prefix should be something like /sub [ids]?)
+
+	} //else statement to give user feedback?
+}
+
 //We need to replace all data with the data from the json struct
 //We also do not want to use the m variable. Use channel id from db
 func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -154,8 +179,10 @@ func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	s.ChannelMessageSendEmbed(m.ChannelID, &testEmbed)
 }
 
-// This function will be called (due to AddHandler above) every time a new
-// guild is joined.
+/*
+This function will be called (due to AddHandler above) every time a new
+guild is joined.
+*/
 func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 
 	//The server is down or deleted
