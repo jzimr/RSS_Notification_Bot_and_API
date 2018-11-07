@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/globalsign/mgo"
@@ -244,7 +245,7 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 	// Check if discord server even exists
 	_, err := db.getDiscord(serverID)
 	if err != nil {
-		fmt.Printf("Error while trying to get discord server with ID: " + serverID + ", " + err.Error())
+		log.Println("Error while trying to get discord server with ID: " + serverID + ", " + err.Error())
 		return false
 	}
 	rss := db.getRSS(rssURL)
@@ -262,7 +263,7 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 	if option == add {
 		// If discord server is already subscribed
 		if index != -1 {
-			fmt.Printf("Discord server " + serverID + " is already subscribed to RSS feed " + rssURL)
+			log.Println("Discord server " + serverID + " is already subscribed to RSS feed " + rssURL)
 			return false
 		}
 		// Add the new RSS feed to collection
@@ -279,7 +280,7 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 	} else if option == remove {
 		// Can't remove something that doesn't exist
 		if index == -1 {
-			fmt.Printf("Discord server " + serverID + " is not subscribed to RSS feed " + rssURL + ". So there's nothing to remove.")
+			log.Println("Discord server " + serverID + " is not subscribed to RSS feed " + rssURL + ". So there's nothing to remove.")
 			return false
 		}
 
