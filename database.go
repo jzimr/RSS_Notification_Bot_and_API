@@ -113,7 +113,7 @@ func (db *DBInfo) updateDiscord(d Discord) {
 	}
 	defer session.Close()
 
-	err = session.DB(db.DBName).C(db.CollectionRSS).Update(bson.M{"serverId": d.ServerID}, bson.M{"$set": bson.M{"channelId": d.ChannelID}})
+	err = session.DB(db.DBName).C(db.CollectionDiscord).Update(bson.M{"serverId": d.ServerID}, bson.M{"$set": bson.M{"channelId": d.ChannelID}})
 	if err != nil {
 		fmt.Printf("Error in updateDiscord(): %v", err.Error())
 	}

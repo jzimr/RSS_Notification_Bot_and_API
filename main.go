@@ -74,7 +74,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.HasPrefix(m.Content, "!commands") { //Example
-		s.ChannelMessageSend(m.ChannelID, "Commands")
+		s.ChannelMessageSend(m.ChannelID, "!newrss <link>\n!configure <channel_id>")
 	}
 
 	// Try to find a webpages' RSS
@@ -87,7 +87,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 				return
 			}
 			s.ChannelMessageSend(m.ChannelID, "Found a RSS link: "+link)
-		}
+		} //else statement to give user feedback?
 	}
 
 	//Only for testing purposes. Need to change later.
@@ -95,6 +95,40 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		//We want to pass a json struct with the function
 		embedMessage(s, m)
+
+	}
+
+	if strings.HasPrefix(strings.ToLower(m.Content), "!configure") {
+		words := strings.Split(m.Content, " ")
+		if len(words) != 2 {
+			s.ChannelMessageSend(m.ChannelID, "Invalid syntax. !configure <channel_id> or !configure <channel_name>")
+			return
+		}
+
+		var index int
+		index = -1
+		channels, err := s.GuildChannels(m.GuildID)
+		if err != nil {
+			fmt.Println(err, " something went horribly wrong")
+		}
+		for i := range channels {
+			if channels[i].ID == words[1] || channels[i].Name == words[1] {
+				index = i
+				break
+			}
+		}
+
+		if index == -1 {
+			s.ChannelMessageSend(m.ChannelID, "Invalid channel id or channel name. Try again")
+			return
+		}
+
+		s.ChannelMessageSend(m.ChannelID, "Text channel with name "+channels[index].Name+" are now set as the default notification channel.")
+		var discordServer Discord
+		discordServer.ServerID = m.GuildID
+		discordServer.ChannelID = channels[index].ID
+
+		db.updateDiscord(discordServer)
 
 	}
 
@@ -130,20 +164,19 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		return
 	}
 
-	//Prints server ID
-	fmt.Printf("\nWas able to connect to %s", event.Guild.ID)
+	var discordServer Discord
+	discordServer.ServerID = event.Guild.ID
+	db.addDiscord(discordServer)
 
-	/* Iterate over connected servers and get channel info
-	channels, err := s.GuildChannels(event.Guild.ID)
-	if err != nil {
-
-	}
-
-	for i := range channels {
-		fmt.Println("\n", channels[i].ID, channels[i].Name)
-	}
+	/*
+		channels, err := s.GuildChannels(event.Guild.ID)
+		if err != nil {
+			fmt.Println(err, " something went horribly wrong")
+		}
+		for i := range channels {
+			fmt.Println("\n", channels[i].ID, channels[i].Name)
+		}
 	*/
-
 }
 
 func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
