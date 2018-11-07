@@ -164,26 +164,25 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		return
 	}
 
+	fmt.Println("serverid:", event.Guild.ID)
+
 	var discordServer Discord
 	discordServer.ServerID = event.Guild.ID
 
+	//Check if server already exist
 	r, err := db.getDiscord(discordServer.ServerID)
+
 	if err != nil && r.ServerID == "" {
-		fmt.Println("New Server. Add it")
 		db.addDiscord(discordServer)
 	}
 
-	/*
-		channels, err := s.GuildChannels(event.Guild.ID)
-		if err != nil {
-			fmt.Println(err, " something went horribly wrong")
-		}
-		for i := range channels {
-			fmt.Println("\n", channels[i].ID, channels[i].Name)
-		}
-	*/
 }
 
 func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
 	fmt.Println("\nDAMN SON. Got rekt ", event.Guild.ID)
+
+	var discordServer Discord
+	discordServer.ServerID = event.Guild.ID
+	db.deleteDiscord(discordServer)
+
 }
