@@ -7,7 +7,9 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// GoogleResult holds an individual search result
+/*
+GoogleResult holds an individual search result
+*/
 type GoogleResult struct {
 	ResultRank  int
 	ResultURL   string
