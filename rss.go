@@ -67,11 +67,15 @@ func postRSS(RSS string) {
 	lastBuild := toTime(c.LastBuildDate)
 
 	r := db.getRSS(RSS)
+
 	if r.LastUpdate != lastBuild {
 		for _, server := range r.DiscordServers {
 			// NOT FINISHED
 			// Post to discord servers here
-			discord := db.getDiscord(server)
+			discord, err := db.getDiscord(server)
+			if err != nil {
+				fmt.Println(err)
+			}
 			fmt.Printf("Channel ID: %v", discord.ChannelID)
 		}
 		r.LastUpdate = lastBuild

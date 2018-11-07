@@ -123,12 +123,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		s.ChannelMessageSend(m.ChannelID, "Text channel with name "+channels[index].Name+" are now set as the default notification channel.")
 		var discordServer Discord
 		discordServer.ServerID = m.GuildID
 		discordServer.ChannelID = channels[index].ID
 
 		db.updateDiscord(discordServer)
+		s.ChannelMessageSend(m.ChannelID, "Text channel with name "+channels[index].Name+" are now set as the default notification channel.")
 
 	}
 
@@ -166,7 +166,13 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 
 	var discordServer Discord
 	discordServer.ServerID = event.Guild.ID
-	db.addDiscord(discordServer)
+
+	r, err := db.getDiscord(discordServer.ServerID)
+	fmt.Println(r.ServerID)
+	if err != nil && r.ServerID == "" {
+		fmt.Println("New Server. Add it")
+		db.addDiscord(discordServer)
+	}
 
 	/*
 		channels, err := s.GuildChannels(event.Guild.ID)

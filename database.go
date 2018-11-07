@@ -58,7 +58,7 @@ func (db *DBInfo) addDiscord(d Discord) Discord {
 /*
 getDiscord gets
 */
-func (db *DBInfo) getDiscord(s string) Discord {
+func (db *DBInfo) getDiscord(s string) (Discord, error) {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -66,12 +66,11 @@ func (db *DBInfo) getDiscord(s string) Discord {
 	defer session.Close()
 
 	d := Discord{}
-
+	fmt.Println(s)
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Find(bson.M{"serverId": s}).One(&d)
-	if err != nil {
-		fmt.Printf("Error in getDiscord(): %v", err.Error())
-	}
-	return d
+
+	//Let other functions handle errors
+	return d, err
 }
 
 /*
@@ -112,7 +111,7 @@ func (db *DBInfo) updateDiscord(d Discord) {
 		panic(err)
 	}
 	defer session.Close()
-
+	fmt.Println("letsgo")
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Update(bson.M{"serverId": d.ServerID}, bson.M{"$set": bson.M{"channelId": d.ChannelID}})
 	if err != nil {
 		fmt.Printf("Error in updateDiscord(): %v", err.Error())
