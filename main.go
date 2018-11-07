@@ -32,6 +32,9 @@ func main() {
 	// Register guildCreate as a callback for the guildCreate events.
 	dg.AddHandler(guildCreate)
 
+	// Register guildCreate as a callback for the guildDelte events.
+	dg.AddHandler(guildDelete)
+
 	// Open the websocket and begin listening.
 	err = dg.Open()
 	if err != nil {
@@ -141,4 +144,8 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	}
 	*/
 
+}
+
+func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
+	fmt.Println("\nDAMN SON. Got rekt ", event.Guild.ID)
 }
