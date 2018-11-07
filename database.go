@@ -66,7 +66,6 @@ func (db *DBInfo) getDiscord(s string) (Discord, error) {
 	defer session.Close()
 
 	d := Discord{}
-	fmt.Println(s)
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Find(bson.M{"serverId": s}).One(&d)
 
 	//Let other functions handle errors
@@ -111,7 +110,6 @@ func (db *DBInfo) updateDiscord(d Discord) {
 		panic(err)
 	}
 	defer session.Close()
-	fmt.Println("letsgo")
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Update(bson.M{"serverId": d.ServerID}, bson.M{"$set": bson.M{"channelId": d.ChannelID}})
 	if err != nil {
 		fmt.Printf("Error in updateDiscord(): %v", err.Error())

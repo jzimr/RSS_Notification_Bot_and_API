@@ -168,7 +168,6 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	discordServer.ServerID = event.Guild.ID
 
 	r, err := db.getDiscord(discordServer.ServerID)
-	fmt.Println(r.ServerID)
 	if err != nil && r.ServerID == "" {
 		fmt.Println("New Server. Add it")
 		db.addDiscord(discordServer)
