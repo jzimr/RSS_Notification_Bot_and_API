@@ -4,6 +4,6 @@ package main
 Discord
 */
 type Discord struct {
-	ServerID  string `json:"serverId" bson:"serverId"`
-	ChannelID string `json:"channelId" bson:"channelId"`
+	ServerID  string `json:"serverid" bson:"serverid"`
+	ChannelID string `json:"channelid" bson:"channelid"`
 }

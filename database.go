@@ -46,7 +46,6 @@ func (db *DBInfo) addDiscord(d Discord) Discord {
 		panic(err)
 	}
 	defer session.Close()
-
 	// Inserts the user into the database
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Insert(d)
 	if err != nil {
@@ -66,7 +65,7 @@ func (db *DBInfo) getDiscord(s string) (Discord, error) {
 	defer session.Close()
 
 	d := Discord{}
-	err = session.DB(db.DBName).C(db.CollectionDiscord).Find(bson.M{"serverId": s}).One(&d)
+	err = session.DB(db.DBName).C(db.CollectionDiscord).Find(bson.M{"serverid": s}).One(&d)
 
 	//Let other functions handle errors
 	return d, err
@@ -82,12 +81,12 @@ func (db *DBInfo) deleteDiscord(d Discord) {
 	}
 	defer session.Close()
 
-	err = session.DB(db.DBName).C(db.CollectionDiscord).Remove(bson.M{"serverId": d.ServerID})
+	err = session.DB(db.DBName).C(db.CollectionDiscord).Remove(bson.M{"serverid": d.ServerID})
 	if err != nil {
 		fmt.Printf("Error in deleteDiscord(): %v", err.Error())
 	}
 
-	Rs := db.getAllRSS()
+	/*Rs := db.getAllRSS()
 	// Loop through every RSS file
 	for _, r := range Rs {
 		// Loop through every discord server array
@@ -98,7 +97,7 @@ func (db *DBInfo) deleteDiscord(d Discord) {
 				db.updateRSS(r)
 			}
 		}
-	}
+	}*/
 }
 
 /*
@@ -110,7 +109,7 @@ func (db *DBInfo) updateDiscord(d Discord) {
 		panic(err)
 	}
 	defer session.Close()
-	err = session.DB(db.DBName).C(db.CollectionDiscord).Update(bson.M{"serverId": d.ServerID}, bson.M{"$set": bson.M{"channelId": d.ChannelID}})
+	err = session.DB(db.DBName).C(db.CollectionDiscord).Update(bson.M{"serverid": d.ServerID}, bson.M{"$set": bson.M{"channelid": d.ChannelID}})
 	if err != nil {
 		fmt.Printf("Error in updateDiscord(): %v", err.Error())
 	}
