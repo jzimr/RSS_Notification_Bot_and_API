@@ -130,15 +130,6 @@ func googleSearchRssLinks(keyword string) (rssLinks []string) {
 }
 
 /*
-	Todo:
-	1. Add support for multiple RSS links, and let the user choose which ones to include
-	2. Webcrawl through google search on the main website and check for RSS links (Smart crawler) (DONE)
-	3. Reddit Automatic RSS?
-	3.5 Make bot post image on how-to-guide on how to get rss feeds from reddit if RSS search failed
-	4. Create google searches based on the users geographical location (E.g. google.co.uk, google.de, google.com, google.no, ...)
-*/
-
-/*
 Crawl returns a link to the RSS of the URL provided, or err if none found
 */
 func Crawl(URL string) (RSSLinks []string) {

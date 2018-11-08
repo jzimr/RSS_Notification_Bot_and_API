@@ -214,6 +214,13 @@ func (db *DBInfo) getAllRSS() ([]RSS, error) {
 }
 
 /*
+----------------------------------------------HELPERFUNCTIONS----------------------------------------------
+- manageSubscription(rssURL string, serverID string, option int) success bool
+- getAllSubscribed
+----------------------------------------------HELPERFUNCTIONS----------------------------------------------
+*/
+
+/*
 Used for "manageSubscription" to decide if we want to add or remove
 an rss file from a discord server
 */
@@ -223,9 +230,7 @@ const (
 )
 
 /*
-!!!NOT TESTED!!!
 manageSubscription adds/removes a particular RSS feed from a server
-!!!NOT TESTED!!!
 */
 func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int) (success bool) {
 	// Check if discord server even exists
@@ -281,4 +286,29 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 	} else {
 		panic("Wrong use of 'option' parameter in manageSubscription(), value must be either 0 or 1. Value received: " + strconv.Itoa(option))
 	}
+}
+
+/*
+getAllSubscribed returns a list of all RSS files the server has subscribed to
+*/
+func getAllSubscribed(serverID string) []RSS {
+	var subscribedTo []RSS
+
+	// VVV
+	// Don't know if this is efficient way of getting data or not
+	allRSS, err := db.getAllRSS()
+	if err != nil {
+		log.Println("Error while trying to get all RSS from database, %v", err.Error())
+		return subscribedTo
+	}
+
+	for i, rss := range allRSS {
+		for _, sID := range rss.DiscordServers {
+			if sID == serverID {
+				subscribedTo = append(subscribedTo, allRSS[i])
+			}
+		}
+	}
+
+	return subscribedTo
 }
