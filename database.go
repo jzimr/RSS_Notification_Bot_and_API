@@ -215,8 +215,8 @@ func (db *DBInfo) getAllRSS() ([]RSS, error) {
 
 /*
 ----------------------------------------------HELPERFUNCTIONS----------------------------------------------
-- manageSubscription(rssURL string, serverID string, option int) success bool
-- getAllSubscribed
+- manageSubscription(string, string, int) bool
+- getAllSubscribed(string) []RSS
 ----------------------------------------------HELPERFUNCTIONS----------------------------------------------
 */
 
@@ -252,8 +252,6 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 			break
 		}
 	}
-
-	fmt.Println(index)
 
 	// New subscription
 	if option == add {

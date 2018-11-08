@@ -152,7 +152,16 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if len(links) == 0 {
 			message = "No RSS link found on the given webpage: '" + words[1] + "'"
 		} else if len(links) == 1 {
-			message = "Found a RSS feed: " + links[0]
+			message = "Found one RSS feed: " + links[0] + ".\n"
+
+			ok := db.manageSubscription(links[0], m.GuildID, add)
+			if !ok {
+				message += "Already subscribed to this RSS feed. So nothing new added."
+			} else {
+				message += "Added RSS feed to the subscription list."
+			}
+			s.ChannelMessageSend(m.ChannelID, message)
+
 		} else {
 			// Reset map
 			tempFeeds = make(map[int]string)
