@@ -26,10 +26,16 @@ type Item struct {
 
 	//Works for most sites. Not all
 	Enclosure struct {
-		Url    string `xml:"url,attr"`
-		Length string `xml:"length,attr"`
-		Type   string `xml:"type,attr"`
+		Url string `xml:"url,attr"`
 	} `xml:"enclosure"`
+
+	//NYTIMES and others?
+	Media struct {
+		Attrs []xml.Attr
+	} `xml:"media:content"`
+
+	//VG specific?
+	Image string `xml:"image"`
 
 	PubDate string `xml:"pubDate"`
 }

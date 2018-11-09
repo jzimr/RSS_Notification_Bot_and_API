@@ -302,8 +302,9 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 	Embed.Footer = &EmbedFooter
 
 	var EmbedImage discordgo.MessageEmbedImage
+
+	//EmbedImage.URL = string(rss.Items[0].Media.Attrs[0].Value)
 	Embed.Image = &EmbedImage
-	EmbedImage.URL = rss.Items[0].Enclosure
 
 	s.ChannelMessageSendEmbed(channelid, &Embed)
 }
