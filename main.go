@@ -148,7 +148,9 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if len(words) == 2 {
 		links := Crawl(words[1])
 
+		var used = 0
 		var message string
+		var tempEmbed discordgo.MessageEmbed
 
 		if len(links) == 0 {
 			message = "No RSS link found on the given webpage: '" + words[1] + "'"
@@ -166,16 +168,27 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		} else {
 			// Reset map
 			tempFeeds = make(map[int]string)
-			message = "Found multiple RSS feeds:\n"
-			// Max feeds listed per search is currently 20
-			for i := 0; i < 20; i++ {
-				tempFeeds[i+1] = links[i] // Add feeds to a map temporarily
-				message += strconv.Itoa(i+1) + ". " + links[i] + "\n"
-			}
-			message += "Use !addrss <numbers> to select multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
-		}
-		s.ChannelMessageSend(m.ChannelID, message)
 
+			used = 1
+			var RssListEmbedFields discordgo.MessageEmbedField
+
+			// Max feeds listed per search is currently 20
+			if len(links) > 20 {
+				links = links[:20]
+			}
+
+			for i := range links {
+				tempFeeds[i+1] = links[i] // Add feeds to a map temporarily
+				RssListEmbedFields.Value = strconv.Itoa(i+1) + " . " + links[i]
+				tempEmbed.Fields = append(tempEmbed.Fields, &RssListEmbedFields)
+
+			}
+		}
+		if used == 0 {
+			s.ChannelMessageSend(m.ChannelID, message)
+		} else {
+			RSSListEmbed(s, m, &tempEmbed)
+		}
 		// TODO: Better formatting
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "Error! Command is of type \"!newrss <link/searchphrase>\"")
@@ -274,6 +287,19 @@ func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	testEmbedImage.URL = "https://i.imgur.com/aSVjtu7.png"
 
 	s.ChannelMessageSendEmbed(m.ChannelID, &testEmbed)
+}
+
+func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, RssListEmbed *discordgo.MessageEmbed) {
+
+	RssListEmbed.Color = 60 //This should be changed
+	RssListEmbed.Title = "Found multiple RSS feeds:"
+	//RssListEmbed.Description = "Something about something something goes here"
+
+	var RssListEmbedFooter discordgo.MessageEmbedFooter
+	RssListEmbedFooter.Text = "Use !addrss <numbers> to select multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
+	RssListEmbed.Footer = &RssListEmbedFooter
+
+	s.ChannelMessageSendEmbed(m.ChannelID, RssListEmbed)
 }
 
 // TODO:
