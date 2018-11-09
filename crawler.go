@@ -47,6 +47,9 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 	}
 	defer resp.Body.Close()
 
+	// bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	// fmt.Println(string(bodyBytes))
+
 	z := html.NewTokenizer(resp.Body)
 
 	for {
