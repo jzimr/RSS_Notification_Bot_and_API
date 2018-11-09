@@ -335,17 +335,13 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 	Embed.Description = rss.Items[0].Description
 
 	var EmbedFooter discordgo.MessageEmbedFooter
-	EmbedFooter.Text = "Some page lol"
+	EmbedFooter.Text = rss.Title
 	Embed.Footer = &EmbedFooter
 
 	var EmbedImage discordgo.MessageEmbedImage
 
-	//EmbedImage.URL = string(rss.Items[0].Media.Attrs[0].Value)
+	EmbedImage.URL = rss.Items[0].Media.Url
 	Embed.Image = &EmbedImage
-<<<<<<< HEAD
-=======
-	// EmbedImage.URL = rss.Items[0].Enclosure
->>>>>>> dd63b8a3957fffe157d12548231f62ac81d86769
 
 	s.ChannelMessageSendEmbed(channelid, &Embed)
 }

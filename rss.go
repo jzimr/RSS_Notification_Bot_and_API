@@ -31,8 +31,8 @@ type Item struct {
 
 	//NYTIMES and others?
 	Media struct {
-		Attrs []xml.Attr
-	} `xml:"media:content"`
+		Url string `xml:"url,attr"`
+	} `xml:"media:container"`
 
 	//VG specific?
 	Image string `xml:"image"`
@@ -44,6 +44,7 @@ type Item struct {
 Channel is used for parsing the RSS file.
 */
 type Channel struct {
+	Title         string `xml:"channel>title"`
 	LastBuildDate string `xml:"channel>lastBuildDate"`
 	Items         []Item `xml:"channel>item"`
 }
