@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
@@ -25,7 +24,7 @@ func generateNewKey() (key string) {
 	var newKey string
 
 	for i := 0; i < 20; i++ {
-		newKey += strconv.Itoa(genRandInt())
+		newKey += chars[genRandInt()]
 	}
 
 	log.Println("Generated a new key: " + newKey)
