@@ -289,6 +289,8 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 
 		// Remove subscription of server to RSS feed
 		rss.DiscordServers = append(rss.DiscordServers[:index], rss.DiscordServers[index+1:]...)
+		db.updateRSS(rss)
+
 		return true
 	} else {
 		panic("Wrong use of 'option' parameter in manageSubscription(), value must be either 0 or 1. Value received: " + strconv.Itoa(option))

@@ -104,6 +104,12 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(strings.ToLower(m.Content), "!listrss") {
 		listRSSFeeds(s, m)
 	}
+	if strings.HasPrefix(strings.ToLower(m.Content), "!rssnewkey") {
+		generateAPIKey(s, m)
+	}
+	if strings.HasPrefix(strings.ToLower(m.Content), "!rssgetkey") {
+		getAPIKey(s, m)
+	}
 
 	if strings.HasPrefix(strings.ToLower(m.Content), "!configure") {
 		words := strings.Split(m.Content, " ")
@@ -266,6 +272,20 @@ func listRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		message += strconv.Itoa(i+1) + ". " + v.URL + "\n"
 	}
 	s.ChannelMessageSend(m.ChannelID, message)
+}
+
+/*
+generateAPIKey generates a new API key and discards the old one for a server
+*/
+func generateAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
+	s.ChannelMessageSend(m.ChannelID, generateNewKey())
+}
+
+/*
+getAPIKey gives the server owner the API key
+*/
+func getAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
+
 }
 
 //We need to replace all data with the data from the json struct
