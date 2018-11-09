@@ -337,12 +337,14 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 }
 
 func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
-	log.Println("\nServer was deleted OR i was kicked from ", event.Guild.ID)
+	log.Println("Server was deleted OR i was kicked from ", event.Guild.ID)
 
 	var discordServer Discord
 	discordServer.ServerID = event.Guild.ID
-	db.deleteDiscord(discordServer)
 
-	//We have to delete every occourence of the discord server from the rss feeds
+	err := db.deleteDiscord(discordServer)
+	if err != nil {
+		log.Println(err)
+	}
 
 }
