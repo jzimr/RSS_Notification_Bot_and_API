@@ -14,6 +14,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+//This may very well be horribly bad
+var GlobalSession *discordgo.Session
+
 func main() {
 	// Initialize the database
 	DBInit()
@@ -64,6 +67,10 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 
 	// Set the playing status.
 	s.UpdateStatus(0, "!commands")
+
+	//Set the GlobalSession to be equal to current Discord Session.
+	GlobalSession = s
+
 }
 
 // This function will be called (due to AddHandler above) every time a new
@@ -80,6 +87,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "!newrss <link>\n!configure <channel_id>")
 	}
 
+	if strings.HasPrefix(m.Content, "!testpost") {
+		postRSS("http://feeds.nytimes.com/nyt/rss/Technology")
+	}
+
 	// Try to find a webpages' RSS
 	if strings.HasPrefix(strings.ToLower(m.Content), "!newrss") {
 		getRSSFeeds(s, m)
@@ -92,14 +103,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	if strings.HasPrefix(strings.ToLower(m.Content), "!listrss") {
 		listRSSFeeds(s, m)
-	}
-
-	//Only for testing purposes. Need to change later.
-	if strings.HasPrefix(strings.ToLower(m.Content), "!testembed") {
-
-		//We want to pass a json struct with the function
-		embedMessage(s, m)
-
 	}
 
 	if strings.HasPrefix(strings.ToLower(m.Content), "!configure") {
@@ -267,22 +270,22 @@ func listRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 //We need to replace all data with the data from the json struct
 //We also do not want to use the m variable. Use channel id from db
-func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
-	var testEmbed discordgo.MessageEmbed
-	testEmbed.Color = 245 //This should be changed
-	testEmbed.URL = "http://localhost"
-	testEmbed.Title = "A title of something goes here"
-	testEmbed.Description = "Something about something something goes here"
+func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
+	var Embed discordgo.MessageEmbed
 
-	var testEmbedFooter discordgo.MessageEmbedFooter
-	testEmbedFooter.Text = "Article pulled from XXX.XXX"
-	testEmbed.Footer = &testEmbedFooter
+	Embed.URL = rss.Items[0].Link
+	Embed.Title = rss.Items[0].Title
+	Embed.Description = rss.Items[0].Description
 
-	var testEmbedImage discordgo.MessageEmbedImage
-	testEmbed.Image = &testEmbedImage
-	testEmbedImage.URL = "https://i.imgur.com/aSVjtu7.png"
+	var EmbedFooter discordgo.MessageEmbedFooter
+	EmbedFooter.Text = "Some page lol"
+	Embed.Footer = &EmbedFooter
 
-	s.ChannelMessageSendEmbed(m.ChannelID, &testEmbed)
+	var EmbedImage discordgo.MessageEmbedImage
+	Embed.Image = &EmbedImage
+	EmbedImage.URL = rss.Items[0].Enclosure
+
+	s.ChannelMessageSendEmbed(channelid, &Embed)
 }
 
 func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, links []string) {

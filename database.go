@@ -255,7 +255,7 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 
 	// Check if discord server is subscribed to RSS feed or not
 	index := -1
-	for i, _ := range rss.DiscordServers {
+	for i := range rss.DiscordServers {
 		if rss.DiscordServers[i] == serverID {
 			index = i
 			break
