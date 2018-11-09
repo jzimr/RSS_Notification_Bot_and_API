@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -187,11 +188,11 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 
 	//The server is down or deleted
 	if event.Guild.Unavailable {
-		fmt.Printf("\nWas not able to connect to %s", event.Guild.ID)
+		log.Printf("\nWas not able to connect to %s", event.Guild.ID)
 		return
 	}
 
-	fmt.Println("serverid:", event.Guild.ID)
+	log.Println("serverid:", event.Guild.ID)
 
 	var discordServer Discord
 	discordServer.ServerID = event.Guild.ID
@@ -206,7 +207,7 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 }
 
 func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
-	fmt.Println("\nDAMN SON. Got rekt ", event.Guild.ID)
+	log.Println("\nServer was deleted OR i was kicked from ", event.Guild.ID)
 
 	var discordServer Discord
 	discordServer.ServerID = event.Guild.ID
