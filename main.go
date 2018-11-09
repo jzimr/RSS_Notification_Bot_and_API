@@ -154,6 +154,7 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if len(words) == 2 {
 		links := Crawl(words[1])
 
+		var used = 0
 		var message string
 
 		if len(links) == 0 {
@@ -172,16 +173,24 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		} else {
 			// Reset map
 			tempFeeds = make(map[int]string)
-			message = "Found multiple RSS feeds:\n"
-			// Max feeds listed per search is currently 20
-			for i := 0; i < 20; i++ {
-				tempFeeds[i+1] = links[i] // Add feeds to a map temporarily
-				message += strconv.Itoa(i+1) + ". " + links[i] + "\n"
-			}
-			message += "Use !addrss <numbers> to select multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
-		}
-		s.ChannelMessageSend(m.ChannelID, message)
 
+			used = 1
+
+			// Max feeds listed per search is currently 20
+			if len(links) > 20 {
+				links = links[:20]
+			}
+
+			for i := range links {
+				tempFeeds[i+1] = links[i] // Add feeds to a map temporarily
+
+			}
+		}
+		if used == 0 {
+			s.ChannelMessageSend(m.ChannelID, message)
+		} else {
+			RSSListEmbed(s, m, links)
+		}
 		// TODO: Better formatting
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "Error! Command is of type \"!newrss <link/searchphrase>\"")
@@ -296,6 +305,27 @@ func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	s.ChannelMessageSendEmbed(m.ChannelID, &testEmbed)
 }
 
+func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, links []string) {
+
+	var RssListEmbed discordgo.MessageEmbed
+
+	RssListEmbed.Title = "Found multiple RSS feeds:"
+	//RssListEmbed.Description = "Something about something something goes here"
+
+	for i := range links {
+		var RssListEmbedFields discordgo.MessageEmbedField
+		RssListEmbedFields.Name = strconv.Itoa(i + 1)
+		RssListEmbedFields.Value = links[i]
+		RssListEmbed.Fields = append(RssListEmbed.Fields, &RssListEmbedFields)
+	}
+
+	var RssListEmbedFooter discordgo.MessageEmbedFooter
+	RssListEmbedFooter.Text = "Use !addrss <numbers> to select multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
+	RssListEmbed.Footer = &RssListEmbedFooter
+
+	s.ChannelMessageSendEmbed(m.ChannelID, &RssListEmbed)
+}
+
 // TODO:
 // func messageReactions(s *discordgo.Session, channelID, messageID, emojiID string, limit int) (st []*User, err error){
 // }
@@ -327,10 +357,14 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 }
 
 func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
-	log.Println("\nServer was deleted OR i was kicked from ", event.Guild.ID)
+	log.Println("Server was deleted OR i was kicked from ", event.Guild.ID)
 
 	var discordServer Discord
 	discordServer.ServerID = event.Guild.ID
-	db.deleteDiscord(discordServer)
+
+	err := db.deleteDiscord(discordServer)
+	if err != nil {
+		log.Println(err)
+	}
 
 }

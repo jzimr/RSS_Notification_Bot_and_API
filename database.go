@@ -81,9 +81,10 @@ func (db *DBInfo) deleteDiscord(d Discord) error {
 
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Remove(bson.M{"serverid": d.ServerID})
 
-	return err
-
-	/*Rs := db.getAllRSS()
+	Rs, err := db.getAllRSS()
+	if err != nil {
+		return err
+	}
 	// Loop through every RSS file
 	for _, r := range Rs {
 		// Loop through every discord server array
@@ -91,10 +92,18 @@ func (db *DBInfo) deleteDiscord(d Discord) error {
 			// If you find the server ID we're deleting in said array then remove it
 			if j == d.ServerID {
 				r.DiscordServers = append(r.DiscordServers[:i], r.DiscordServers[i+1:]...)
-				db.updateRSS(r)
+
+				if len(r.DiscordServers) != 0 {
+					db.updateRSS(r)
+				} else { //Delete from DB.
+					log.Println("Delete RSS from DB. Empty DiscordList")
+					db.deleteRSS(r.URL)
+				}
 			}
 		}
-	}*/
+	}
+
+	return err
 }
 
 /*
