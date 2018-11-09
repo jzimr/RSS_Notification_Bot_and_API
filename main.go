@@ -150,7 +150,6 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		var used = 0
 		var message string
-		var tempEmbed discordgo.MessageEmbed
 
 		if len(links) == 0 {
 			message = "No RSS link found on the given webpage: '" + words[1] + "'"
@@ -170,7 +169,6 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 			tempFeeds = make(map[int]string)
 
 			used = 1
-			var RssListEmbedFields discordgo.MessageEmbedField
 
 			// Max feeds listed per search is currently 20
 			if len(links) > 20 {
@@ -179,15 +177,13 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 			for i := range links {
 				tempFeeds[i+1] = links[i] // Add feeds to a map temporarily
-				RssListEmbedFields.Value = strconv.Itoa(i+1) + " . " + links[i]
-				tempEmbed.Fields = append(tempEmbed.Fields, &RssListEmbedFields)
 
 			}
 		}
 		if used == 0 {
 			s.ChannelMessageSend(m.ChannelID, message)
 		} else {
-			RSSListEmbed(s, m, &tempEmbed)
+			RSSListEmbed(s, m, links)
 		}
 		// TODO: Better formatting
 	} else {
@@ -289,17 +285,25 @@ func embedMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	s.ChannelMessageSendEmbed(m.ChannelID, &testEmbed)
 }
 
-func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, RssListEmbed *discordgo.MessageEmbed) {
+func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, links []string) {
 
-	RssListEmbed.Color = 60 //This should be changed
+	var RssListEmbed discordgo.MessageEmbed
+
 	RssListEmbed.Title = "Found multiple RSS feeds:"
 	//RssListEmbed.Description = "Something about something something goes here"
+
+	for i := range links {
+		var RssListEmbedFields discordgo.MessageEmbedField
+		RssListEmbedFields.Name = strconv.Itoa(i + 1)
+		RssListEmbedFields.Value = links[i]
+		RssListEmbed.Fields = append(RssListEmbed.Fields, &RssListEmbedFields)
+	}
 
 	var RssListEmbedFooter discordgo.MessageEmbedFooter
 	RssListEmbedFooter.Text = "Use !addrss <numbers> to select multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
 	RssListEmbed.Footer = &RssListEmbedFooter
 
-	s.ChannelMessageSendEmbed(m.ChannelID, RssListEmbed)
+	s.ChannelMessageSendEmbed(m.ChannelID, &RssListEmbed)
 }
 
 // TODO:
@@ -338,5 +342,7 @@ func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
 	var discordServer Discord
 	discordServer.ServerID = event.Guild.ID
 	db.deleteDiscord(discordServer)
+
+	//We have to delete every occourence of the discord server from the rss feeds
 
 }
