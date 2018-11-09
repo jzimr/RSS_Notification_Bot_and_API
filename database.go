@@ -115,7 +115,7 @@ func (db *DBInfo) updateDiscord(d Discord) error {
 		panic(err)
 	}
 	defer session.Close()
-	err = session.DB(db.DBName).C(db.CollectionDiscord).Update(bson.M{"serverid": d.ServerID}, bson.M{"$set": bson.M{"channelid": d.ChannelID}})
+	err = session.DB(db.DBName).C(db.CollectionDiscord).Update(bson.M{"serverid": d.ServerID}, bson.M{"$set": bson.M{"channelid": d.ChannelID, "apikey": d.APIKey}})
 
 	return err
 }

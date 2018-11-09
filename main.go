@@ -278,14 +278,51 @@ func listRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 generateAPIKey generates a new API key and discards the old one for a server
 */
 func generateAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
-	s.ChannelMessageSend(m.ChannelID, generateNewKey())
+	guild, err := s.Guild(m.GuildID)
+	if err != nil {
+		log.Println("Something went wrong trying to get guild, %v", err.Error())
+	}
+
+	// Only server owner is allowed to create API keys
+	if m.Author.ID != guild.OwnerID {
+		s.ChannelMessageSend(m.ChannelID, "Only the owner of the server has permission to this command.")
+		return
+	}
+
+	discord, err := db.getDiscord(m.GuildID)
+	if err != nil {
+		log.Println("Something went wrong getting serverID from databse, %v", err.Error())
+	}
+
+	// Generate a new key
+	discord.APIKey = generateNewKey()
+
+	err = db.updateDiscord(discord)
+	if err != nil {
+		log.Println("Something went wrong updating the API key in database, %v", err.Error())
+	}
+
+	// Establish DM channel with owner of server
+	channel, err := s.UserChannelCreate(guild.OwnerID)
+	if err != nil {
+		log.Println("Something went wrong whilst trying to create a DM, %v", err.Error())
+	}
+
+	// Send a private message to the owner so he can use it
+	s.ChannelMessageSend(channel.ID, "New API key: "+discord.APIKey)
 }
 
 /*
 getAPIKey gives the server owner the API key
 */
 func getAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// guild, err := s.Guild(m.GuildID)
 
+	// // Only server owner is allowed to get API keys
+	// if m.Author.ID != guild.OwnerID {
+	// 	s.ChannelMessageSend(m.ChannelID, "Only the owner of the server has permission to this command.")
+	// 	return
+	// }
 }
 
 //We need to replace all data with the data from the json struct
@@ -305,6 +342,10 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 
 	//EmbedImage.URL = string(rss.Items[0].Media.Attrs[0].Value)
 	Embed.Image = &EmbedImage
+<<<<<<< HEAD
+=======
+	// EmbedImage.URL = rss.Items[0].Enclosure
+>>>>>>> dd63b8a3957fffe157d12548231f62ac81d86769
 
 	s.ChannelMessageSendEmbed(channelid, &Embed)
 }
