@@ -23,8 +23,15 @@ type Item struct {
 	Title       string `xml:"title"`
 	Link        string `xml:"link"`
 	Description string `xml:"description"`
-	Enclosure   string `xml:"enclosure"` // Relevant image
-	PubDate     string `xml:"pubDate"`
+
+	//Works for most sites. Not all
+	Enclosure struct {
+		Url    string `xml:"url,attr"`
+		Length string `xml:"length,attr"`
+		Type   string `xml:"type,attr"`
+	} `xml:"enclosure"`
+
+	PubDate string `xml:"pubDate"`
 }
 
 /*
@@ -71,19 +78,24 @@ func postRSS(RSS string) {
 		fmt.Printf("%v", err.Error())
 	}
 
-	if r.LastUpdate != lastBuild {
-		for _, server := range r.DiscordServers {
-			// NOT FINISHED
-			// Post to discord servers here
-			discord, err := db.getDiscord(server)
-			if err != nil {
-				fmt.Println(err)
-			}
-			fmt.Printf("Channel ID: %v", discord.ChannelID)
+	//This if statement does currently not work
+	//if r.LastUpdate != lastBuild {
+	for _, server := range r.DiscordServers {
+		// NOT FINISHED
+		// Post to discord servers here
+
+		discord, err := db.getDiscord(server)
+		if err != nil {
+			fmt.Println(err)
 		}
-		r.LastUpdate = lastBuild
-		db.updateRSS(r)
+
+		//Forward channel to function which sends an embeded message to the correct discord channel
+		embedMessage(GlobalSession, discord.ChannelID, c)
+		fmt.Printf("Channel ID: %v", discord.ChannelID)
 	}
+	r.LastUpdate = lastBuild
+	db.updateRSS(r)
+	//}
 }
 
 /*

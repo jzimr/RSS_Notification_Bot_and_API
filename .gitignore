@@ -1,4 +1,4 @@
 .DS_STORE
-/config.go
+config.go
 .vscode
 .vscode/*
