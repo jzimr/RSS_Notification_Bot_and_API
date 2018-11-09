@@ -66,7 +66,10 @@ func postRSS(RSS string) {
 	// Convert string to time
 	lastBuild := toTime(c.LastBuildDate)
 
-	r := db.getRSS(RSS)
+	r, err := db.getRSS(RSS)
+	if err != nil {
+		fmt.Printf("%v", err.Error())
+	}
 
 	if r.LastUpdate != lastBuild {
 		for _, server := range r.DiscordServers {

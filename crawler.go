@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -129,18 +130,9 @@ func googleSearchRssLinks(keyword string) (rssLinks []string) {
 }
 
 /*
-	Todo:
-	1. Add support for multiple RSS links, and let the user choose which ones to include
-	2. Webcrawl through google search on the main website and check for RSS links (Smart crawler) (DONE)
-	3. Reddit Automatic RSS?
-	3.5 Make bot post image on how-to-guide on how to get rss feeds from reddit if RSS search failed
-	4. Create google searches based on the users geographical location (E.g. google.co.uk, google.de, google.com, google.no, ...)
-*/
-
-/*
 Crawl returns a link to the RSS of the URL provided, or err if none found
 */
-func Crawl(URL string) (RSSLinks []string, err error) {
+func Crawl(URL string) (RSSLinks []string) {
 	if !strings.Contains(URL, "http://") && !strings.Contains(URL, "https://") {
 		URL = "http://" + URL
 	}
@@ -150,7 +142,7 @@ func Crawl(URL string) (RSSLinks []string, err error) {
 	if isPageRSS(URL) {
 		log.Println("\"" + URL + "\" is already a .rss file")
 		links = append(links, URL)
-		return links, nil
+		return links
 	}
 
 	// Search through the webpage's source code after an "rss" link
@@ -171,14 +163,8 @@ func Crawl(URL string) (RSSLinks []string, err error) {
 
 		// Execute searching method
 		links = googleSearchRssLinks(keyword)
-		fmt.Println(len(links))
+		fmt.Println("Found: " + strconv.Itoa(len(links)) + " links.")
 	}
 
-	// Still no results? Might as well give up.
-	if len(links) == 0 {
-		return nil, fmt.Errorf("No RSS link found on the given webpage")
-	}
-
-	// If there are more links, we just return the first one (Room for improvement here!)
-	return links, nil
+	return links
 }

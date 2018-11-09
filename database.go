@@ -40,8 +40,7 @@ func DBInit() {
 /*
 addDiscord adds
 */
-func (db *DBInfo) addDiscord(d Discord) Discord {
-
+func (db *DBInfo) addDiscord(d Discord) (Discord, error) {
 	// Creates a connection
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
@@ -50,10 +49,8 @@ func (db *DBInfo) addDiscord(d Discord) Discord {
 	defer session.Close()
 	// Inserts the user into the database
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Insert(d)
-	if err != nil {
-		fmt.Printf("Error in addDiscord(): %v", err.Error())
-	}
-	return d
+
+	return d, err
 }
 
 /*
@@ -69,14 +66,13 @@ func (db *DBInfo) getDiscord(s string) (Discord, error) {
 	d := Discord{}
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Find(bson.M{"serverid": s}).One(&d)
 
-	//Let other functions handle errors
 	return d, err
 }
 
 /*
 deleteDiscord deletes
 */
-func (db *DBInfo) deleteDiscord(d Discord) {
+func (db *DBInfo) deleteDiscord(d Discord) error {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -84,9 +80,8 @@ func (db *DBInfo) deleteDiscord(d Discord) {
 	defer session.Close()
 
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Remove(bson.M{"serverid": d.ServerID})
-	if err != nil {
-		fmt.Printf("Error in deleteDiscord(): %v", err.Error())
-	}
+
+	return err
 
 	/*Rs := db.getAllRSS()
 	// Loop through every RSS file
@@ -105,16 +100,15 @@ func (db *DBInfo) deleteDiscord(d Discord) {
 /*
 updateDiscord updates
 */
-func (db *DBInfo) updateDiscord(d Discord) {
+func (db *DBInfo) updateDiscord(d Discord) error {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
 	}
 	defer session.Close()
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Update(bson.M{"serverid": d.ServerID}, bson.M{"$set": bson.M{"channelid": d.ChannelID}})
-	if err != nil {
-		fmt.Printf("Error in updateDiscord(): %v", err.Error())
-	}
+
+	return err
 }
 
 /*
@@ -130,7 +124,7 @@ func (db *DBInfo) updateDiscord(d Discord) {
 /*
 addRSS adds
 */
-func (db *DBInfo) addRSS(u string) RSS {
+func (db *DBInfo) addRSS(u string) (RSS, error) {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -144,16 +138,14 @@ func (db *DBInfo) addRSS(u string) RSS {
 
 	// Inserts the RSS into the database
 	err = session.DB(db.DBName).C(db.CollectionRSS).Insert(r)
-	if err != nil {
-		fmt.Printf("Error in addRSS(): %v", err.Error())
-	}
-	return r
+
+	return r, err
 }
 
 /*
 getRSS gets
 */
-func (db *DBInfo) getRSS(u string) RSS {
+func (db *DBInfo) getRSS(u string) (RSS, error) {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -163,16 +155,14 @@ func (db *DBInfo) getRSS(u string) RSS {
 	r := RSS{}
 
 	err = session.DB(db.DBName).C(db.CollectionRSS).Find(bson.M{"url": u}).One(&r)
-	if err != nil {
-		fmt.Printf("Error in getRSS(): %v", err.Error())
-	}
-	return r
+
+	return r, err
 }
 
 /*
 deleteRSS deletes
 */
-func (db *DBInfo) deleteRSS(u string) {
+func (db *DBInfo) deleteRSS(u string) error {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -180,15 +170,14 @@ func (db *DBInfo) deleteRSS(u string) {
 	defer session.Close()
 
 	err = session.DB(db.DBName).C(db.CollectionRSS).Remove(bson.M{"url": u})
-	if err != nil {
-		fmt.Printf("Error in deleteRSS(): %v", err.Error())
-	}
+
+	return err
 }
 
 /*
 updateRSS updates
 */
-func (db *DBInfo) updateRSS(r RSS) {
+func (db *DBInfo) updateRSS(r RSS) error {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -203,15 +192,14 @@ func (db *DBInfo) updateRSS(r RSS) {
 
 	// Updates the discord server array
 	err = session.DB(db.DBName).C(db.CollectionRSS).Update(bson.M{"url": r.URL}, bson.M{"$set": bson.M{"discordServers": r.DiscordServers}})
-	if err != nil {
-		fmt.Printf("Error in updateRSS(): %v", err.Error())
-	}
+
+	return err
 }
 
 /*
 getAllRSS gets an array
 */
-func (db *DBInfo) getAllRSS() []RSS {
+func (db *DBInfo) getAllRSS() ([]RSS, error) {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -221,11 +209,16 @@ func (db *DBInfo) getAllRSS() []RSS {
 	var r []RSS
 
 	err = session.DB(db.DBName).C(db.CollectionRSS).Find(bson.M{}).All(&r)
-	if err != nil {
-		fmt.Printf("Error in getAllRSS(): %v", err.Error())
-	}
-	return r
+
+	return r, err
 }
+
+/*
+----------------------------------------------HELPERFUNCTIONS----------------------------------------------
+- manageSubscription(string, string, int) bool
+- getAllSubscribed(string) []RSS
+----------------------------------------------HELPERFUNCTIONS----------------------------------------------
+*/
 
 /*
 Used for "manageSubscription" to decide if we want to add or remove
@@ -237,9 +230,7 @@ const (
 )
 
 /*
-!!!NOT TESTED!!!
 manageSubscription adds/removes a particular RSS feed from a server
-!!!NOT TESTED!!!
 */
 func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int) (success bool) {
 	// Check if discord server even exists
@@ -248,15 +239,18 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 		log.Println("Error while trying to get discord server with ID: " + serverID + ", " + err.Error())
 		return false
 	}
-	rss := db.getRSS(rssURL)
+	rss, err := db.getRSS(rssURL)
+	if err != nil {
+		fmt.Printf("%v", err.Error())
+	}
 
 	// Check if discord server is subscribed to RSS feed or not
-	var index int
-	for index = range rss.DiscordServers {
-		if rss.DiscordServers[index] == serverID {
+	index := -1
+	for i, _ := range rss.DiscordServers {
+		if rss.DiscordServers[i] == serverID {
+			index = i
 			break
 		}
-		index = -1
 	}
 
 	// New subscription
@@ -268,7 +262,7 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 		}
 		// Add the new RSS feed to collection
 		if len(rss.DiscordServers) == 0 {
-			rss = db.addRSS(rssURL)
+			rss, err = db.addRSS(rssURL)
 		}
 
 		// Subscribe server to RSS feed
@@ -290,4 +284,29 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 	} else {
 		panic("Wrong use of 'option' parameter in manageSubscription(), value must be either 0 or 1. Value received: " + strconv.Itoa(option))
 	}
+}
+
+/*
+getAllSubscribed returns a list of all RSS files the server has subscribed to
+*/
+func getAllSubscribed(serverID string) []RSS {
+	var subscribedTo []RSS
+
+	// VVV
+	// Don't know if this is efficient way of getting data or not
+	allRSS, err := db.getAllRSS()
+	if err != nil {
+		log.Println("Error while trying to get all RSS from database, %v", err.Error())
+		return subscribedTo
+	}
+
+	for i, rss := range allRSS {
+		for _, sID := range rss.DiscordServers {
+			if sID == serverID {
+				subscribedTo = append(subscribedTo, allRSS[i])
+			}
+		}
+	}
+
+	return subscribedTo
 }
