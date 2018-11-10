@@ -280,7 +280,7 @@ generateAPIKey generates a new API key and discards the old one for a server
 func generateAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 	guild, err := s.Guild(m.GuildID)
 	if err != nil {
-		log.Println("Something went wrong trying to get guild, %v", err.Error())
+		log.Println("Something went wrong trying to get guild, " + err.Error())
 	}
 
 	// Only server owner is allowed to create API keys
@@ -291,7 +291,7 @@ func generateAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	discord, err := db.getDiscord(m.GuildID)
 	if err != nil {
-		log.Println("Something went wrong getting serverID from databse, %v", err.Error())
+		log.Println("Something went wrong getting serverID from databse, " + err.Error())
 	}
 
 	// Generate a new key
@@ -299,13 +299,13 @@ func generateAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	err = db.updateDiscord(discord)
 	if err != nil {
-		log.Println("Something went wrong updating the API key in database, %v", err.Error())
+		log.Println("Something went wrong updating the API key in database, " + err.Error())
 	}
 
 	// Establish DM channel with owner of server
 	channel, err := s.UserChannelCreate(guild.OwnerID)
 	if err != nil {
-		log.Println("Something went wrong whilst trying to create a DM, %v", err.Error())
+		log.Println("Something went wrong whilst trying to create a DM, " + err.Error())
 	}
 
 	// Send a private message to the owner so he can use it
