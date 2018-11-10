@@ -143,7 +143,9 @@ func (db *DBInfo) addRSS(u string) (RSS, error) {
 	var r RSS
 	r.URL = u
 	c := readRSS(u)
-
+	if c.LastBuildDate == "" {
+		c.LastBuildDate = c.Items[0].PubDate
+	}
 	r.LastUpdate, err = toTime(c.LastBuildDate)
 	if err != nil {
 		return r, err
@@ -276,6 +278,7 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 		// Add the new RSS feed to collection
 		if len(rss.DiscordServers) == 0 {
 			rss, err = db.addRSS(rssURL)
+			log.Println(err)
 		}
 
 		// Subscribe server to RSS feed

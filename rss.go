@@ -77,11 +77,11 @@ postRSS goes through each discord server that subscribes to a RSS and sends a me
 */
 func postRSS(RSS string) {
 	c := readRSS(RSS)
-
+	log.Println(RSS)
 	// Convert string to time
 	lastBuild, err := toTime(c.LastBuildDate)
 	if err != nil {
-		log.Println("Error in postRss()", err)
+		log.Println("Error in postRss()", RSS, err)
 		return
 	}
 
@@ -93,7 +93,11 @@ func postRSS(RSS string) {
 	//This if statement does currently not work
 
 	//HACKY FIX
+	log.Println(r.LastUpdate.String())
+	//Remove GMT/UTC suffix
 	parsedTime := r.LastUpdate.String()[:len(r.LastUpdate.String())-4]
+	//Remove extra timezone info
+	//if strings.()
 
 	if !strings.HasPrefix(lastBuild.String(), parsedTime) {
 		for _, server := range r.DiscordServers {
@@ -107,12 +111,10 @@ func postRSS(RSS string) {
 
 			//Forward channel to function which sends an embeded message to the correct discord channel
 			embedMessage(GlobalSession, discord.ChannelID, c)
-			fmt.Printf("Channel ID: %v", discord.ChannelID)
+			log.Printf("Channel ID: %v", discord.ChannelID)
 		}
 		r.LastUpdate = lastBuild
 		db.updateRSS(r)
-	} else {
-		log.Println("No update")
 	}
 }
 
@@ -126,7 +128,10 @@ func toTime(s string) (time.Time, error) {
 
 	t, err := time.Parse(time.RFC1123, newS)
 	if err != nil {
-		return t, err
+		t, err = time.Parse(time.RFC1123Z, newS)
+		if err != nil {
+			return t, err
+		}
 	}
 	return t, nil
 }
