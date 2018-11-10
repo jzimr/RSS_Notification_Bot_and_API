@@ -26,10 +26,16 @@ type Item struct {
 
 	//Works for most sites. Not all
 	Enclosure struct {
-		Url    string `xml:"url,attr"`
-		Length string `xml:"length,attr"`
-		Type   string `xml:"type,attr"`
+		Url string `xml:"url,attr"`
 	} `xml:"enclosure"`
+
+	//NYTIMES and others?
+	Media struct {
+		Url string `xml:"url,attr"`
+	} `xml:"media:container"`
+
+	//VG specific?
+	Image string `xml:"image"`
 
 	PubDate string `xml:"pubDate"`
 }
@@ -38,6 +44,7 @@ type Item struct {
 Channel is used for parsing the RSS file.
 */
 type Channel struct {
+	Title         string `xml:"channel>title"`
 	LastBuildDate string `xml:"channel>lastBuildDate"`
 	Items         []Item `xml:"channel>item"`
 }
