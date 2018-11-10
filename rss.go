@@ -97,7 +97,9 @@ func postRSS(RSS string) {
 	//Remove GMT/UTC suffix
 	parsedTime := r.LastUpdate.String()[:len(r.LastUpdate.String())-4]
 	//Remove extra timezone info
-	//if strings.()
+	if strings.Contains(parsedTime, "+0000") {
+		parsedTime = parsedTime[:len(parsedTime)-5]
+	}
 
 	if !strings.HasPrefix(lastBuild.String(), parsedTime) {
 		for _, server := range r.DiscordServers {

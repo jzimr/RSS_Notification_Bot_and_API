@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -40,6 +41,8 @@ func main() {
 	// Register guildCreate as a callback for the guildDelte events.
 	dg.AddHandler(guildDelete)
 
+	stop := schedule(scanAndPost, 3*time.Minute)
+
 	// Open the websocket and begin listening.
 	err = dg.Open()
 	if err != nil {
@@ -55,6 +58,8 @@ func main() {
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
+
+	stop <- true
 
 	// Cleanly close down the Discord session.
 	dg.Close()
@@ -88,7 +93,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if strings.HasPrefix(m.Content, "!testpost") {
-		postRSS("http://feeds.nytimes.com/nyt/rss/Technology")
+		postRSS("https://www.nrk.no/toppsaker.rss")
 	}
 
 	// Try to find a webpages' RSS
