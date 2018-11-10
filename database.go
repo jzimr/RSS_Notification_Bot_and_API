@@ -143,7 +143,11 @@ func (db *DBInfo) addRSS(u string) (RSS, error) {
 	var r RSS
 	r.URL = u
 	c := readRSS(u)
-	r.LastUpdate = toTime(c.LastBuildDate)
+
+	r.LastUpdate, err = toTime(c.LastBuildDate)
+	if err != nil {
+		return r, err
+	}
 
 	// Inserts the RSS into the database
 	err = session.DB(db.DBName).C(db.CollectionRSS).Insert(r)

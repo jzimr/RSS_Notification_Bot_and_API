@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -78,7 +79,11 @@ func postRSS(RSS string) {
 	c := readRSS(RSS)
 
 	// Convert string to time
-	lastBuild := toTime(c.LastBuildDate)
+	lastBuild, err := toTime(c.LastBuildDate)
+	if err != nil {
+		log.Println("Error in postRss()", err)
+		return
+	}
 
 	r, err := db.getRSS(RSS)
 	if err != nil {
@@ -108,12 +113,15 @@ func postRSS(RSS string) {
 /*
 toTime converts from the RFC1123 format to time.Time
 */
-func toTime(s string) time.Time {
-	layout := "Mon, 02 Jan 2006 15:04:05 MST"
+func toTime(s string) (time.Time, error) {
 
-	t, err := time.Parse(layout, s)
+	//Remove extra space on the right side
+	newS := strings.TrimRight(s, " ")
+
+	t, err := time.Parse(time.RFC1123, newS)
 	if err != nil {
-		fmt.Println(err)
+		return t, err
 	}
-	return t
+	log.Println(t)
+	return t, nil
 }
