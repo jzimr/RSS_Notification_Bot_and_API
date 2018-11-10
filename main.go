@@ -81,73 +81,51 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+	channel, err := s.Channel(m.ChannelID)
+	if err != nil {
+		log.Println("Error while trying to retrieve channel in messageCreate(), " + err.Error())
+	}
 
 	// Ignore all messages created by the bot itself
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
 
-	if strings.HasPrefix(m.Content, "!commands") { //Example
+	/*
+		Commands only allowed in a server
+	*/
+	if channel.Type != discordgo.ChannelTypeDM {
+		if strings.HasPrefix(m.Content, "!testpost") {
+			postRSS("https://www.nrk.no/toppsaker.rss")
+		}
+		if strings.HasPrefix(strings.ToLower(m.Content), "!newrss") {
+			getRSSFeeds(s, m)
+		}
+		if strings.HasPrefix(strings.ToLower(m.Content), "!addrss") {
+			addRSSFeeds(s, m)
+		}
+		if strings.HasPrefix(strings.ToLower(m.Content), "!remrss") {
+			removeRSSFeeds(s, m)
+		}
+		if strings.HasPrefix(strings.ToLower(m.Content), "!listrss") {
+			listRSSFeeds(s, m)
+		}
+		if strings.HasPrefix(strings.ToLower(m.Content), "!rssnewkey") ||
+			strings.HasPrefix(strings.ToLower(m.Content), "!rssgetkey") {
+			manageAPIKey(s, m)
+		}
+		if strings.HasPrefix(strings.ToLower(m.Content), "!configure") {
+			configure(s, m)
+		}
+	}
+
+	/*
+		Commands allowed in server as well as DM
+	*/
+	if strings.HasPrefix(strings.ToLower(m.Content), "!commands") {
 		// TODO: Add more commands to the list
 		s.ChannelMessageSend(m.ChannelID, "!newrss <link>\n!configure <channel_id>")
 	}
-
-	if strings.HasPrefix(m.Content, "!testpost") {
-		postRSS("https://www.nrk.no/toppsaker.rss")
-	}
-
-	// Try to find a webpages' RSS
-	if strings.HasPrefix(strings.ToLower(m.Content), "!newrss") {
-		getRSSFeeds(s, m)
-	}
-	if strings.HasPrefix(strings.ToLower(m.Content), "!addrss") {
-		addRSSFeeds(s, m)
-	}
-	if strings.HasPrefix(strings.ToLower(m.Content), "!remrss") {
-		removeRSSFeeds(s, m)
-	}
-	if strings.HasPrefix(strings.ToLower(m.Content), "!listrss") {
-		listRSSFeeds(s, m)
-	}
-	if strings.HasPrefix(strings.ToLower(m.Content), "!rssnewkey") ||
-		strings.HasPrefix(strings.ToLower(m.Content), "!rssgetkey") {
-		manageAPIKey(s, m)
-	}
-
-	if strings.HasPrefix(strings.ToLower(m.Content), "!configure") {
-		words := strings.Split(m.Content, " ")
-		if len(words) != 2 {
-			s.ChannelMessageSend(m.ChannelID, "Invalid syntax. !configure <channel_id> or !configure <channel_name>")
-			return
-		}
-
-		var index int
-		index = -1
-		channels, err := s.GuildChannels(m.GuildID)
-		if err != nil {
-			fmt.Println(err, " something went horribly wrong")
-		}
-		for i := range channels {
-			if channels[i].ID == words[1] || channels[i].Name == words[1] {
-				index = i
-				break
-			}
-		}
-
-		if index == -1 {
-			s.ChannelMessageSend(m.ChannelID, "Invalid channel id or channel name. Try again")
-			return
-		}
-
-		var discordServer Discord
-		discordServer.ServerID = m.GuildID
-		discordServer.ChannelID = channels[index].ID
-
-		db.updateDiscord(discordServer)
-		s.ChannelMessageSend(m.ChannelID, "Text channel with name "+channels[index].Name+" are now set as the default notification channel.")
-
-	}
-
 }
 
 var tempFeeds = make(map[int]string)
@@ -201,6 +179,42 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else {
 		s.ChannelMessageSend(m.ChannelID, "Error! Command is of type \"!newrss <link/searchphrase>\"")
 	}
+}
+
+/*
+configure lets the user choose what text channel the bot should post rss updates to
+*/
+func configure(s *discordgo.Session, m *discordgo.MessageCreate) {
+	words := strings.Split(m.Content, " ")
+	if len(words) != 2 {
+		s.ChannelMessageSend(m.ChannelID, "Invalid syntax. !configure <channel_id> or !configure <channel_name>")
+		return
+	}
+
+	var index int
+	index = -1
+	channels, err := s.GuildChannels(m.GuildID)
+	if err != nil {
+		fmt.Println(err, " something went horribly wrong")
+	}
+	for i := range channels {
+		if channels[i].ID == words[1] || channels[i].Name == words[1] {
+			index = i
+			break
+		}
+	}
+
+	if index == -1 {
+		s.ChannelMessageSend(m.ChannelID, "Invalid channel id or channel name. Try again")
+		return
+	}
+
+	var discordServer Discord
+	discordServer.ServerID = m.GuildID
+	discordServer.ChannelID = channels[index].ID
+
+	db.updateDiscord(discordServer)
+	s.ChannelMessageSend(m.ChannelID, "Text channel with name "+channels[index].Name+" are now set as the default notification channel.")
 }
 
 /*
