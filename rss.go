@@ -95,7 +95,7 @@ func postRSS(RSS string) {
 	//HACKY FIX
 	parsedTime := r.LastUpdate.String()[:len(r.LastUpdate.String())-4]
 
-	if strings.Contains(parsedTime, lastBuild.String()) {
+	if !strings.HasPrefix(lastBuild.String(), parsedTime) {
 		for _, server := range r.DiscordServers {
 			// NOT FINISHED
 			// Post to discord servers here
