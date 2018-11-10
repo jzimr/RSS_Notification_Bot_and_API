@@ -104,11 +104,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(strings.ToLower(m.Content), "!listrss") {
 		listRSSFeeds(s, m)
 	}
-	if strings.HasPrefix(strings.ToLower(m.Content), "!rssnewkey") {
-		generateAPIKey(s, m)
-	}
-	if strings.HasPrefix(strings.ToLower(m.Content), "!rssgetkey") {
-		getAPIKey(s, m)
+	if strings.HasPrefix(strings.ToLower(m.Content), "!rssnewkey") ||
+		strings.HasPrefix(strings.ToLower(m.Content), "!rssgetkey") {
+		manageAPIKey(s, m)
 	}
 
 	if strings.HasPrefix(strings.ToLower(m.Content), "!configure") {
@@ -238,6 +236,8 @@ removeRSSFeeds lets the user choose which feeds to unsubscribe to
 */
 func removeRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	words := strings.Split(m.Content, " ")
+	// Show a list of feeds to choose from
+	listRSSFeeds(s, m)
 
 	var message string
 
@@ -275,9 +275,9 @@ func listRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 /*
-generateAPIKey generates a new API key and discards the old one for a server
+manageAPIKey generates or gets an API key
 */
-func generateAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
+func manageAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 	guild, err := s.Guild(m.GuildID)
 	if err != nil {
 		log.Println("Something went wrong trying to get guild, " + err.Error())
@@ -294,12 +294,19 @@ func generateAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 		log.Println("Something went wrong getting serverID from databse, " + err.Error())
 	}
 
-	// Generate a new key
-	discord.APIKey = generateNewKey()
+	var message string
 
-	err = db.updateDiscord(discord)
-	if err != nil {
-		log.Println("Something went wrong updating the API key in database, " + err.Error())
+	if strings.HasPrefix(strings.ToLower(m.Content), "!rssnewkey") {
+		// Generate a new key
+		discord.APIKey = generateNewKey()
+		err = db.updateDiscord(discord)
+		if err != nil {
+			log.Println("Something went wrong updating the API key in database, " + err.Error())
+		}
+		message += "New API key: "
+	} else if strings.HasPrefix(strings.ToLower(m.Content), "!rssgetkey") {
+		// Get key
+		message += "API key: "
 	}
 
 	// Establish DM channel with owner of server
@@ -309,20 +316,7 @@ func generateAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Send a private message to the owner so he can use it
-	s.ChannelMessageSend(channel.ID, "New API key: "+discord.APIKey)
-}
-
-/*
-getAPIKey gives the server owner the API key
-*/
-func getAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
-	// guild, err := s.Guild(m.GuildID)
-
-	// // Only server owner is allowed to get API keys
-	// if m.Author.ID != guild.OwnerID {
-	// 	s.ChannelMessageSend(m.ChannelID, "Only the owner of the server has permission to this command.")
-	// 	return
-	// }
+	s.ChannelMessageSend(channel.ID, message+discord.APIKey)
 }
 
 //We need to replace all data with the data from the json struct
@@ -407,5 +401,4 @@ func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
 	if err != nil {
 		log.Println(err)
 	}
-
 }

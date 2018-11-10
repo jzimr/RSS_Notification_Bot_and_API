@@ -107,6 +107,7 @@ func googleSearchRssLinks(keyword string) (rssLinks []string) {
 
 	// Check for results
 	if len(result) == 0 {
+		log.Println(URL)
 		log.Println("Google could not find any search results with the given keyword: " + keyword)
 		return
 	}
@@ -114,19 +115,20 @@ func googleSearchRssLinks(keyword string) (rssLinks []string) {
 	// Go through the first three results and check for RSS
 	for i := 0; i < 3; i++ {
 		fmt.Println(result[i].ResultURL)
-		if strings.Contains(result[i].ResultURL, keyword) {
-			// If page we found on google already is .rss page
-			if isPageRSS(result[i].ResultURL) {
-				links = append(links, result[i].ResultURL)
-				break
-			}
+		// if strings.Contains(result[i].ResultURL, keyword) {
 
-			tempLinks := fetchRSSLinks(result[i].ResultURL)
-			if len(tempLinks) != 0 {
-				links = tempLinks
-				break
-			}
+		// If page we found on google already is .rss page
+		if isPageRSS(result[i].ResultURL) {
+			links = append(links, result[i].ResultURL)
+			break
 		}
+
+		tempLinks := fetchRSSLinks(result[i].ResultURL)
+		if len(tempLinks) != 0 {
+			links = tempLinks
+			break
+		}
+		// }
 	}
 
 	return links

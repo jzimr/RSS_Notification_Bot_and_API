@@ -307,7 +307,7 @@ func getAllSubscribed(serverID string) []RSS {
 	// Don't know if this is efficient way of getting data or not
 	allRSS, err := db.getAllRSS()
 	if err != nil {
-		log.Println("Error while trying to get all RSS from database, %v", err.Error())
+		log.Println("Error while trying to get all RSS from database" + err.Error())
 		return subscribedTo
 	}
 
