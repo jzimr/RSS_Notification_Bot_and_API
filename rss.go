@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -76,9 +77,13 @@ postRSS goes through each discord server that subscribes to a RSS and sends a me
 */
 func postRSS(RSS string) {
 	c := readRSS(RSS)
-
+	log.Println(RSS)
 	// Convert string to time
-	lastBuild := toTime(c.LastBuildDate)
+	lastBuild, err := toTime(c.LastBuildDate)
+	if err != nil {
+		log.Println("Error in postRss()", RSS, err)
+		return
+	}
 
 	r, err := db.getRSS(RSS)
 	if err != nil {
@@ -86,34 +91,49 @@ func postRSS(RSS string) {
 	}
 
 	//This if statement does currently not work
-	//if r.LastUpdate != lastBuild {
-	for _, server := range r.DiscordServers {
-		// NOT FINISHED
-		// Post to discord servers here
 
-		discord, err := db.getDiscord(server)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		//Forward channel to function which sends an embeded message to the correct discord channel
-		embedMessage(GlobalSession, discord.ChannelID, c)
-		fmt.Printf("Channel ID: %v", discord.ChannelID)
+	//HACKY FIX
+	log.Println(r.LastUpdate.String())
+	//Remove GMT/UTC suffix
+	parsedTime := r.LastUpdate.String()[:len(r.LastUpdate.String())-4]
+	//Remove extra timezone info
+	if strings.Contains(parsedTime, "+0000") {
+		parsedTime = parsedTime[:len(parsedTime)-5]
 	}
-	r.LastUpdate = lastBuild
-	db.updateRSS(r)
-	//}
+
+	if !strings.HasPrefix(lastBuild.String(), parsedTime) {
+		for _, server := range r.DiscordServers {
+			// NOT FINISHED
+			// Post to discord servers here
+
+			discord, err := db.getDiscord(server)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			//Forward channel to function which sends an embeded message to the correct discord channel
+			embedMessage(GlobalSession, discord.ChannelID, c)
+			log.Printf("Channel ID: %v", discord.ChannelID)
+		}
+		r.LastUpdate = lastBuild
+		db.updateRSS(r)
+	}
 }
 
 /*
 toTime converts from the RFC1123 format to time.Time
 */
-func toTime(s string) time.Time {
-	layout := "Mon, 02 Jan 2006 15:04:05 MST"
+func toTime(s string) (time.Time, error) {
 
-	t, err := time.Parse(layout, s)
+	//Remove extra space on the right side
+	newS := strings.TrimRight(s, " ")
+
+	t, err := time.Parse(time.RFC1123, newS)
 	if err != nil {
-		fmt.Println(err)
+		t, err = time.Parse(time.RFC1123Z, newS)
+		if err != nil {
+			return t, err
+		}
 	}
-	return t
+	return t, nil
 }
