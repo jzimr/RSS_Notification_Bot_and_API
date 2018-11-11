@@ -33,19 +33,10 @@ func isPageRSS(URL string) (isRSS bool) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	content := string(body)
-	content = content[0:20]
+	doctype := string(body)[0:16] // Fixes error on some RSS feeds
 
-	if strings.HasPrefix(content, "<?xml version") {
-		fmt.Println("YUSSS!")
+	if strings.Contains(doctype, "<?xml version") {
 		return true
-	}
-	if strings.Contains(content, "<?xml version") {
-		fmt.Println("OKAY!!!")
-	} else {
-		slicy := string(body)
-		slicy2 := slicy[0:20]
-		fmt.Println(slicy2)
 	}
 
 	return false
