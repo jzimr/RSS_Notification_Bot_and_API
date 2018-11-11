@@ -340,22 +340,33 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 
 	Embed.URL = rss.Items[0].Link
 	Embed.Title = rss.Items[0].Title
-	Embed.Description = rss.Items[0].Description
+
+	if len(rss.Items[0].Description) > 1 {
+		Embed.Description = rss.Items[0].Description
+	} else {
+		Embed.Description = "No description is available."
+	}
 
 	var EmbedFooter discordgo.MessageEmbedFooter
-	EmbedFooter.Text = rss.Title
+	if len(rss.Title) > 1 {
+		EmbedFooter.Text = rss.Title
+	} else {
+		EmbedFooter.Text = rss.OriginalRSSLink
+	}
 	Embed.Footer = &EmbedFooter
 
 	var EmbedImage discordgo.MessageEmbedImage
 
-	if len(rss.Items[0].Enclosure.Url) > 1 {
+	if len(rss.Items[0].Enclosure.Url) > 1 { //Standard
 		EmbedImage.URL = rss.Items[0].Enclosure.Url
-	} else if len(rss.Items[0].Image) > 1 {
+	} else if len(rss.Items[0].Image) > 1 { //Weird websites like VG
 		EmbedImage.URL = rss.Items[0].Image
-	} else {
+	} else if len(rss.Items[0].Media.Url) > 1 { //"media" container
 		EmbedImage.URL = rss.Items[0].Media.Url
+	} else {
+		//Fallback to website image
+		EmbedImage.URL = rss.Image.Url
 	}
-
 	Embed.Image = &EmbedImage
 
 	s.ChannelMessageSendEmbed(channelid, &Embed)

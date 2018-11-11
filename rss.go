@@ -21,8 +21,9 @@ Item holds articles or anything else the RSS file consists of
 It's reached through Channel
 */
 type Item struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
+	Title string `xml:"title"`
+	Link  string `xml:"link"`
+
 	Description string `xml:"description"`
 
 	//Works for most sites. Not all
@@ -30,10 +31,10 @@ type Item struct {
 		Url string `xml:"url,attr"`
 	} `xml:"enclosure"`
 
-	//NYTIMES and others?
+	//NYTIMES and others. DOES NOT WORK ATM
 	Media struct {
 		Url string `xml:"url,attr"`
-	} `xml:"media:container"`
+	} `xml:"media:content"`
 
 	//VG specific?
 	Image string `xml:"image"`
@@ -45,9 +46,15 @@ type Item struct {
 Channel is used for parsing the RSS file.
 */
 type Channel struct {
-	Title      string `xml:"channel>title"`
-	LastUpdate int64
-	Items      []Item `xml:"channel>item"`
+	OriginalRSSLink string //FallbackMethod
+	Title           string `xml:"channel>title"`
+	LastUpdate      int64
+
+	Image struct {
+		Url string `xml:"url"`
+	} `xml:"channel>image"`
+
+	Items []Item `xml:"channel>item"`
 }
 
 /*
@@ -73,6 +80,8 @@ func readRSS(RSS string) Channel {
 	if err != nil {
 		log.Println("Error in readRSS()", RSS, err)
 	}
+
+	channel.OriginalRSSLink = RSS
 
 	return channel
 }
