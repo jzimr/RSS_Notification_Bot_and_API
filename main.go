@@ -348,7 +348,14 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 
 	var EmbedImage discordgo.MessageEmbedImage
 
-	EmbedImage.URL = rss.Items[0].Media.Url
+	if len(rss.Items[0].Enclosure.Url) > 1 {
+		EmbedImage.URL = rss.Items[0].Enclosure.Url
+	} else if len(rss.Items[0].Image) > 1 {
+		EmbedImage.URL = rss.Items[0].Image
+	} else {
+		EmbedImage.URL = rss.Items[0].Media.Url
+	}
+
 	Embed.Image = &EmbedImage
 
 	s.ChannelMessageSendEmbed(channelid, &Embed)
