@@ -38,7 +38,7 @@ func main() {
 	// Register guildCreate as a callback for the guildCreate events.
 	dg.AddHandler(guildCreate)
 
-	// Register guildCreate as a callback for the guildDelte events.
+	// Register guildCreate as a callback for the guildDelete events.
 	dg.AddHandler(guildDelete)
 
 	stop := schedule(scanAndPost, 3*time.Minute)
@@ -95,9 +95,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Commands only allowed in a server
 	*/
 	if channel.Type != discordgo.ChannelTypeDM {
-		if strings.HasPrefix(m.Content, "!testpost") {
-			postRSS("https://www.nrk.no/toppsaker.rss")
-		}
 		if strings.HasPrefix(strings.ToLower(m.Content), "!newrss") {
 			getRSSFeeds(s, m)
 		}
@@ -152,8 +149,6 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 			} else {
 				message += "Added RSS feed to the subscription list."
 			}
-			s.ChannelMessageSend(m.ChannelID, message)
-
 		} else {
 			// Reset map
 			tempFeeds = make(map[int]string)
