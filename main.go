@@ -15,7 +15,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-//This may very well be horribly bad
+//This may very well be horribly bad <-- Yup
 var GlobalSession *discordgo.Session
 
 func main() {

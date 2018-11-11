@@ -21,18 +21,33 @@ import (
 Checks whether a given webpage (URL) is of RSS format
 */
 func isPageRSS(URL string) (isRSS bool) {
-	resp, err := http.Get(URL)
+	// Make GET request
+	baseClient := &http.Client{} //
+	req, _ := http.NewRequest("GET", URL, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
+	resp, err := baseClient.Do(req)
 	if err != nil {
-		log.Println("An error occured while trying to make GET request, " + err.Error())
-		return false
+		log.Println("An error occured while trying to make GET requestsssss, " + err.Error())
+		return
 	}
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
+	content := string(body)
+	content = content[0:20]
 
-	if strings.HasPrefix(string(body), "<?xml version=") {
+	if strings.HasPrefix(content, "<?xml version") {
+		fmt.Println("YUSSS!")
 		return true
 	}
+	if strings.Contains(content, "<?xml version") {
+		fmt.Println("OKAY!!!")
+	} else {
+		slicy := string(body)
+		slicy2 := slicy[0:20]
+		fmt.Println(slicy2)
+	}
+
 	return false
 }
 
