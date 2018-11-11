@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -35,11 +36,12 @@ func DBInit() {
 - getDiscord(s string) (Discord, error)
 - deleteDiscord(d Discord) error
 - updateDiscord(d Discord) error
+- deleteAllDiscord()
 --------------------------------------------Discord--------------------------------------------
 */
 
 /*
-addDiscord adds
+addDiscord adds a new discord to the database
 */
 func (db *DBInfo) addDiscord(d Discord) (Discord, error) {
 	// Creates a connection
@@ -48,6 +50,7 @@ func (db *DBInfo) addDiscord(d Discord) (Discord, error) {
 		panic(err)
 	}
 	defer session.Close()
+
 	// Inserts the user into the database
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Insert(d)
 
@@ -55,7 +58,7 @@ func (db *DBInfo) addDiscord(d Discord) (Discord, error) {
 }
 
 /*
-countDiscord counts
+countDiscord counts how many discord servers there are
 */
 func (db *DBInfo) countDiscord() (int, error) {
 	session, err := mgo.Dial(db.DBURL)
@@ -70,7 +73,7 @@ func (db *DBInfo) countDiscord() (int, error) {
 }
 
 /*
-getDiscord gets
+getDiscord gets the discord object from a serverId
 */
 func (db *DBInfo) getDiscord(s string) (Discord, error) {
 	session, err := mgo.Dial(db.DBURL)
@@ -86,7 +89,8 @@ func (db *DBInfo) getDiscord(s string) (Discord, error) {
 }
 
 /*
-deleteDiscord deletes
+deleteDiscord is run if a server is deleted or bot kicked. It deletes the discord from the database
+	and also removes the serverId from all the RSS feeds it was subscribed to
 */
 func (db *DBInfo) deleteDiscord(d Discord) error {
 	session, err := mgo.Dial(db.DBURL)
@@ -103,19 +107,13 @@ func (db *DBInfo) deleteDiscord(d Discord) error {
 	}
 	// Loop through every RSS file
 	for _, r := range Rs {
-		// Loop through every discord server array
-		for i, j := range r.DiscordServers {
-			// If you find the server ID we're deleting in said array then remove it
-			if j == d.ServerID {
-				r.DiscordServers = append(r.DiscordServers[:i], r.DiscordServers[i+1:]...)
-
-				if len(r.DiscordServers) != 0 {
-					db.updateRSS(r)
-				} else { //Delete from DB.
-					log.Println("Delete RSS from DB. Empty DiscordList")
-					db.deleteRSS(r.URL)
-				}
-			}
+		// Try to remove the discord serverId
+		err = session.DB(db.DBName).C(db.CollectionRSS).Update(bson.M{"url": r.URL}, bson.M{"$pull": bson.M{"discordServers": d.ServerID}})
+		// Check if there's still servers subscribed to this rss, delete it if not
+		r, _ = db.getRSS(r.URL)
+		if len(r.DiscordServers) == 0 {
+			log.Println("Delete RSS from DB. Empty DiscordList")
+			db.deleteRSS(r.URL)
 		}
 	}
 
@@ -123,7 +121,7 @@ func (db *DBInfo) deleteDiscord(d Discord) error {
 }
 
 /*
-updateDiscord updates
+updateDiscord is run when the user uses !configure and updates the channelId and APIKey of a discord server
 */
 func (db *DBInfo) updateDiscord(d Discord) error {
 	session, err := mgo.Dial(db.DBURL)
@@ -137,6 +135,20 @@ func (db *DBInfo) updateDiscord(d Discord) error {
 }
 
 /*
+deleteAllDiscord deletes every Discord object
+*/
+func (db *DBInfo) deleteAllDiscord() {
+	session, err := mgo.Dial(db.DBURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Delete everything from the collection
+	session.DB(db.DBName).C(db.CollectionDiscord).RemoveAll(nil)
+}
+
+/*
 ----------------------------------------------RSS----------------------------------------------
 - addRSS(u string) (RSS, error)
 - countRSS() (int, error)
@@ -144,11 +156,12 @@ func (db *DBInfo) updateDiscord(d Discord) error {
 - deleteRSS(u string) error
 - updateRSS(r RSS) error
 - getAllRSS() ([]RSS, error)
+- deleteAllRSS()
 ----------------------------------------------RSS----------------------------------------------
 */
 
 /*
-addRSS adds
+addRSS adds a new rss to the database
 */
 func (db *DBInfo) addRSS(u string) (RSS, error) {
 	session, err := mgo.Dial(db.DBURL)
@@ -156,6 +169,12 @@ func (db *DBInfo) addRSS(u string) (RSS, error) {
 		panic(err)
 	}
 	defer session.Close()
+
+	// Check if already exists
+	dd, err := db.getRSS(u)
+	if err == nil {
+		return dd, errors.New("The RSS already exists")
+	}
 
 	var r RSS
 	r.URL = u
@@ -169,7 +188,7 @@ func (db *DBInfo) addRSS(u string) (RSS, error) {
 }
 
 /*
-countRSS counts
+countRSS counts how many rss elements there are
 */
 func (db *DBInfo) countRSS() (int, error) {
 	session, err := mgo.Dial(db.DBURL)
@@ -184,7 +203,7 @@ func (db *DBInfo) countRSS() (int, error) {
 }
 
 /*
-getRSS gets
+getRSS gets a rss object from its url
 */
 func (db *DBInfo) getRSS(u string) (RSS, error) {
 	session, err := mgo.Dial(db.DBURL)
@@ -201,7 +220,7 @@ func (db *DBInfo) getRSS(u string) (RSS, error) {
 }
 
 /*
-deleteRSS deletes
+deleteRSS deletes a rss object from its url
 */
 func (db *DBInfo) deleteRSS(u string) error {
 	session, err := mgo.Dial(db.DBURL)
@@ -216,7 +235,7 @@ func (db *DBInfo) deleteRSS(u string) error {
 }
 
 /*
-updateRSS updates
+updateRSS updates the time of the last update and the array of discord servers
 */
 func (db *DBInfo) updateRSS(r RSS) error {
 	session, err := mgo.Dial(db.DBURL)
@@ -225,20 +244,16 @@ func (db *DBInfo) updateRSS(r RSS) error {
 	}
 	defer session.Close()
 
-	// Updates the time of the last update
-	err = session.DB(db.DBName).C(db.CollectionRSS).Update(bson.M{"url": r.URL}, bson.M{"$set": bson.M{"lastUpdate": r.LastUpdate}})
+	err = session.DB(db.DBName).C(db.CollectionRSS).Update(bson.M{"url": r.URL}, bson.M{"$set": bson.M{"lastUpdate": r.LastUpdate, "discordServers": r.DiscordServers}})
 	if err != nil {
 		fmt.Printf("Error in updateRSS(): %v", err.Error())
 	}
-
-	// Updates the discord server array
-	err = session.DB(db.DBName).C(db.CollectionRSS).Update(bson.M{"url": r.URL}, bson.M{"$set": bson.M{"discordServers": r.DiscordServers}})
 
 	return err
 }
 
 /*
-getAllRSS gets an array
+getAllRSS gets an array of all rss's
 */
 func (db *DBInfo) getAllRSS() ([]RSS, error) {
 	session, err := mgo.Dial(db.DBURL)
@@ -252,6 +267,20 @@ func (db *DBInfo) getAllRSS() ([]RSS, error) {
 	err = session.DB(db.DBName).C(db.CollectionRSS).Find(bson.M{}).All(&r)
 
 	return r, err
+}
+
+/*
+deleteAllDiscord deletes every RSS object
+*/
+func (db *DBInfo) deleteAllRSS() {
+	session, err := mgo.Dial(db.DBURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	// Delete everything from the collection
+	session.DB(db.DBName).C(db.CollectionRSS).RemoveAll(nil)
 }
 
 /*

@@ -38,7 +38,7 @@ func main() {
 	// Register guildCreate as a callback for the guildCreate events.
 	dg.AddHandler(guildCreate)
 
-	// Register guildCreate as a callback for the guildDelte events.
+	// Register guildCreate as a callback for the guildDelete events.
 	dg.AddHandler(guildDelete)
 
 	stop := schedule(scanAndPost, 3*time.Minute)
