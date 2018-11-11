@@ -30,10 +30,11 @@ func DBInit() {
 
 /*
 --------------------------------------------Discord--------------------------------------------
-- addDiscord(d Discord) Discord
-- getDiscord(s string) Discord
-- deleteDiscord(d Discord)
-- updateDiscord(d Discord)
+- addDiscord(d Discord) (Discord, error)
+- countDiscord() (int, error)
+- getDiscord(s string) (Discord, error)
+- deleteDiscord(d Discord) error
+- updateDiscord(d Discord) error
 --------------------------------------------Discord--------------------------------------------
 */
 
@@ -51,6 +52,21 @@ func (db *DBInfo) addDiscord(d Discord) (Discord, error) {
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Insert(d)
 
 	return d, err
+}
+
+/*
+countDiscord counts
+*/
+func (db *DBInfo) countDiscord() (int, error) {
+	session, err := mgo.Dial(db.DBURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	count, err := session.DB(db.DBName).C(db.CollectionDiscord).Count()
+
+	return count, err
 }
 
 /*
@@ -122,11 +138,12 @@ func (db *DBInfo) updateDiscord(d Discord) error {
 
 /*
 ----------------------------------------------RSS----------------------------------------------
-- addRSS(u string) RSS
-- getRSS(u string) RSS
-- deleteRSS(u string)
-- updateRSS(r RSS)
-- getAllRSS() []RSS
+- addRSS(u string) (RSS, error)
+- countRSS() (int, error)
+- getRSS(u string) (RSS, error)
+- deleteRSS(u string) error
+- updateRSS(r RSS) error
+- getAllRSS() ([]RSS, error)
 ----------------------------------------------RSS----------------------------------------------
 */
 
@@ -143,18 +160,27 @@ func (db *DBInfo) addRSS(u string) (RSS, error) {
 	var r RSS
 	r.URL = u
 	c := readRSS(u)
-	if c.LastBuildDate == "" {
-		c.LastBuildDate = c.Items[0].PubDate
-	}
-	r.LastUpdate, err = toTime(c.LastBuildDate)
-	if err != nil {
-		return r, err
-	}
+	r.LastUpdate = c.LastUpdate
 
 	// Inserts the RSS into the database
 	err = session.DB(db.DBName).C(db.CollectionRSS).Insert(r)
 
 	return r, err
+}
+
+/*
+countRSS counts
+*/
+func (db *DBInfo) countRSS() (int, error) {
+	session, err := mgo.Dial(db.DBURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	count, err := session.DB(db.DBName).C(db.CollectionRSS).Count()
+
+	return count, err
 }
 
 /*

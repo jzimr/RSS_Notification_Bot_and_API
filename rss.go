@@ -11,9 +11,9 @@ import (
 
 // RSS ,,,
 type RSS struct {
-	URL            string    `json:"url" bson:"url"`
-	LastUpdate     time.Time `json:"lastUpdate" bson:"lastUpdate"`
-	DiscordServers []string  `json:"discordServers" bson:"discordServers"`
+	URL            string   `json:"url" bson:"url"`
+	LastUpdate     int64    `json:"lastUpdate" bson:"lastUpdate"`
+	DiscordServers []string `json:"discordServers" bson:"discordServers"`
 }
 
 /*
@@ -38,16 +38,16 @@ type Item struct {
 	//VG specific?
 	Image string `xml:"image"`
 
-	PubDate string `xml:"pubDate"`
+	PubDateString string `xml:"pubDate"`
 }
 
 /*
 Channel is used for parsing the RSS file.
 */
 type Channel struct {
-	Title         string `xml:"channel>title"`
-	LastBuildDate string `xml:"channel>lastBuildDate"`
-	Items         []Item `xml:"channel>item"`
+	Title      string `xml:"channel>title"`
+	LastUpdate int64
+	Items      []Item `xml:"channel>item"`
 }
 
 /*
@@ -69,6 +69,11 @@ func readRSS(RSS string) Channel {
 		log.Fatalln(err)
 	}
 
+	channel.LastUpdate, err = toTime(channel.Items[0].PubDateString)
+	if err != nil {
+		log.Println("Error in readRSS()", RSS, err)
+	}
+
 	return channel
 }
 
@@ -76,36 +81,19 @@ func readRSS(RSS string) Channel {
 postRSS goes through each discord server that subscribes to a RSS and sends a message to it
 */
 func postRSS(RSS string) {
+	// c is the latest data from the URL
 	c := readRSS(RSS)
 	log.Println(RSS)
-	// Convert string to time
-	lastBuild, err := toTime(c.LastBuildDate)
-	if err != nil {
-		log.Println("Error in postRss()", RSS, err)
-		return
-	}
 
+	// r is used to see when we last sent the message from this URL
 	r, err := db.getRSS(RSS)
 	if err != nil {
 		fmt.Printf("%v", err.Error())
 	}
 
-	//This if statement does currently not work
-
-	//HACKY FIX
-	log.Println(r.LastUpdate.String())
-	//Remove GMT/UTC suffix
-	parsedTime := r.LastUpdate.String()[:len(r.LastUpdate.String())-4]
-	//Remove extra timezone info
-	if strings.Contains(parsedTime, "+0000") {
-		parsedTime = parsedTime[:len(parsedTime)-5]
-	}
-
-	if !strings.HasPrefix(lastBuild.String(), parsedTime) {
+	// If the the latest update in the RSS file (c) is not the same as the latest update we sent out (r)
+	if c.LastUpdate != r.LastUpdate {
 		for _, server := range r.DiscordServers {
-			// NOT FINISHED
-			// Post to discord servers here
-
 			discord, err := db.getDiscord(server)
 			if err != nil {
 				fmt.Println(err)
@@ -115,7 +103,7 @@ func postRSS(RSS string) {
 			embedMessage(GlobalSession, discord.ChannelID, c)
 			log.Printf("Channel ID: %v", discord.ChannelID)
 		}
-		r.LastUpdate = lastBuild
+		r.LastUpdate = c.LastUpdate
 		db.updateRSS(r)
 	}
 }
@@ -123,7 +111,7 @@ func postRSS(RSS string) {
 /*
 toTime converts from the RFC1123 format to time.Time
 */
-func toTime(s string) (time.Time, error) {
+func toTime(s string) (int64, error) {
 
 	//Remove extra space on the right side
 	newS := strings.TrimRight(s, " ")
@@ -132,8 +120,9 @@ func toTime(s string) (time.Time, error) {
 	if err != nil {
 		t, err = time.Parse(time.RFC1123Z, newS)
 		if err != nil {
-			return t, err
+			return t.Unix(), err
 		}
 	}
-	return t, nil
+
+	return t.Unix(), nil
 }
