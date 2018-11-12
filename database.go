@@ -37,6 +37,7 @@ func DBInit() {
 - deleteDiscord(d Discord) error
 - updateDiscord(d Discord) error
 - deleteAllDiscord()
+- getDiscordFromAPI(s string) (Discord, error)
 --------------------------------------------Discord--------------------------------------------
 */
 
@@ -146,6 +147,22 @@ func (db *DBInfo) deleteAllDiscord() {
 
 	// Delete everything from the collection
 	session.DB(db.DBName).C(db.CollectionDiscord).RemoveAll(nil)
+}
+
+/*
+getDiscordFromAPI gets the discord object from an apiKey
+*/
+func (db *DBInfo) getDiscordFromAPI(s string) (Discord, error) {
+	session, err := mgo.Dial(db.DBURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	d := Discord{}
+	err = session.DB(db.DBName).C(db.CollectionDiscord).Find(bson.M{"apikey": s}).One(&d)
+
+	return d, err
 }
 
 /*

@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/gorilla/mux"
 )
 
 //This may very well be horribly bad <-- Yup
@@ -21,6 +23,13 @@ var GlobalSession *discordgo.Session
 func main() {
 	// Initialize the database
 	DBInit()
+
+	// API Setup
+	r := mux.NewRouter()
+	r.HandleFunc("/api/{apiKey}", addRss).Methods("POST")
+	r.HandleFunc("/api/rss", listAllRss).Methods("GET")
+	r.HandleFunc("/api/rss/{apiKey}", listRss).Methods("GET")
+	http.ListenAndServe(":8080", r)
 
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + token)
