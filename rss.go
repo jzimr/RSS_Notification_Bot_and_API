@@ -76,11 +76,14 @@ func readRSS(RSS string) Channel {
 		log.Fatalln(err)
 	}
 
+	// Sets the last update time to that of the latest article
 	channel.LastUpdate, err = toTime(channel.Items[0].PubDateString)
 	if err != nil {
 		log.Println("Error in readRSS()", RSS, err)
 	}
 
+	// Tries to fix a bug by trimming the article URL of bonus characters
+	channel.Items[0].Link = stringTrim(channel.Items[0].Link)
 	channel.OriginalRSSLink = RSS
 
 	return channel
@@ -137,10 +140,7 @@ toTime converts from the RFC1123 format to time.Time
 func toTime(s string) (int64, error) {
 
 	//Remove potential extra characters
-	newS := strings.TrimRight(s, " ")	
-	newS = strings.TrimRight(s, "\n")
-	newS = strings.TrimRight(newS, "\"")
-	newS = strings.TrimLeft(newS, "\"")
+	newS := stringTrim(s)
 
 	t, err := time.Parse(time.RFC1123, newS)
 	if err != nil {
@@ -151,4 +151,16 @@ func toTime(s string) (int64, error) {
 	}
 
 	return t.Unix(), nil
+}
+
+/*
+stringTrim removes unwanted characters
+*/
+func stringTrim(s string) string {
+	s = strings.TrimRight(s, " ")
+	s = strings.TrimRight(s, "\n")
+	s = strings.TrimRight(s, "\"")
+	s = strings.TrimLeft(s, "\"")
+
+	return s
 }
