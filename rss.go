@@ -136,8 +136,11 @@ toTime converts from the RFC1123 format to time.Time
 */
 func toTime(s string) (int64, error) {
 
-	//Remove extra space on the right side
-	newS := strings.TrimRight(s, " ")
+	//Remove potential extra characters
+	newS := strings.TrimRight(s, " ")	
+	newS = strings.TrimRight(s, "\n")
+	newS = strings.TrimRight(newS, "\"")
+	newS = strings.TrimLeft(newS, "\"")
 
 	t, err := time.Parse(time.RFC1123, newS)
 	if err != nil {
