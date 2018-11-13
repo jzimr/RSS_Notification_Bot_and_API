@@ -133,7 +133,7 @@ getRSSFeeds gets and lists rss feeds based on a search
 func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	words := strings.Split(m.Content, " ")
 	if len(words) == 2 {
-		links := Crawl(words[1])
+		links := Crawl(words[1]) // List of all RSS links
 
 		var used = 0
 		var message string
@@ -168,7 +168,8 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if used == 0 {
 			s.ChannelMessageSend(m.ChannelID, message)
 		} else {
-			RSSListEmbed(s, m, links)
+			linksAndNames := getRSSNamesAndLinks(links) // Map of RSS links (Key) and names (Value)
+			RSSListEmbed(s, m, linksAndNames)
 		}
 		// TODO: Better formatting
 	} else {
@@ -177,7 +178,7 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 /*
-configure lets the user choose what text channel the bot should post rss updates to
+	configure lets the user choose what text channel the bot should post rss updates to
 */
 func configure(s *discordgo.Session, m *discordgo.MessageCreate) {
 	words := strings.Split(m.Content, " ")
@@ -372,17 +373,25 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 	s.ChannelMessageSendEmbed(channelid, &Embed)
 }
 
-func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, links []string) {
+func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, rssFeeds map[string]string) {
 
 	var RssListEmbed discordgo.MessageEmbed
 
 	RssListEmbed.Title = "Found multiple RSS feeds:"
 	//RssListEmbed.Description = "Something about something something goes here"
+	i := 1
 
-	for i := range links {
+	for key, val := range rssFeeds {
 		var RssListEmbedFields discordgo.MessageEmbedField
-		RssListEmbedFields.Name = strconv.Itoa(i + 1)
-		RssListEmbedFields.Value = links[i]
+
+		RssListEmbedFields.Value = key
+		if val != "" {
+			RssListEmbedFields.Name = strconv.Itoa(i) + ". " + val
+		} else {
+			RssListEmbedFields.Name = strconv.Itoa(i) + ". <Empty>"
+		}
+		i++
+
 		RssListEmbed.Fields = append(RssListEmbed.Fields, &RssListEmbedFields)
 	}
 

@@ -87,6 +87,20 @@ func readRSS(RSS string) Channel {
 }
 
 /*
+getRSSNamesAndLinks returns a map of names and links of the rss feeds given in "links" parameter
+*/
+func getRSSNamesAndLinks(links []string) (namesAndLinks map[string]string) {
+	m := make(map[string]string)
+
+	for _, link := range links {
+		channel := readRSS(link)
+		m[link] = channel.Title
+	}
+
+	return m
+}
+
+/*
 postRSS goes through each discord server that subscribes to a RSS and sends a message to it
 */
 func postRSS(RSS string) {
