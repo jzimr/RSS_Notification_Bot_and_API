@@ -430,6 +430,10 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		db.addDiscord(discordServer)
 	}
 
+	if r.ChannelID == "" {
+		//Post to first channel that the bot needs to be configured
+	}
+
 }
 
 func guildDelete(s *discordgo.Session, event *discordgo.GuildDelete) {
