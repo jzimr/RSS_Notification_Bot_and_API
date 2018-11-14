@@ -2,7 +2,9 @@
 
 Created by: 
 Morten Tingstad Spjøtvoll	(mortespj, 257780)
+
 André Gunhildberget (andregg, 493561)
+
 Jan Zimmer (janzim, 493594)
 
 Discord bot invite link:
