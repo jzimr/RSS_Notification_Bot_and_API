@@ -121,7 +121,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	*/
 	if strings.HasPrefix(strings.ToLower(m.Content), "!commands") {
 		// TODO: Add more commands to the list
-		s.ChannelMessageSend(m.ChannelID, "!newrss <link>\n!configure <channel_id>")
+		s.ChannelMessageSend(m.ChannelID, `
+`+"**Basic Commands:**"+`
+!commands					`+"\t\t\t\t"+`#Get a list of commands
+!configure <channel_id>		`+"\t"+` #Set a new channel where the bot should post RSS updates. Default: First channel in server.
+!newrss <keyword/link>		`+"\t"+`#Subscribe to a new RSS feed using a keyword (e.g. bbc) or link (e.g. http://feeds.bbci.co.uk/news/rss.xml)
+!addrss <link/number(s)>	`+"\t"+` #If more than one RSS link was found by the bot, you can choose feeds
+!listrss					`+"\t\t\t\t\t\t"+`#Get a list of all feeds your server is subscribed to.
+!remrss<link/number(s)>	`+"\t"+` #(Call \"!listrss\" first) Remove RSS subscription(s).
+
+`+"**WebAPI (Only for server owner):**"+`
+!newkeyrss				    `+"\t\t\t\t"+`#Get a new API key to use for the webAPI. (NOTE: this will replace the old one)
+!getkeyrss					`+"\t\t\t\t"+`  #Get the current API key.
+	`)
 	}
 }
 
