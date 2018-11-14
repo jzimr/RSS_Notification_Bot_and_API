@@ -2,11 +2,11 @@
 
 Created by: 
 
-Morten Tingstad Spjøtvoll	(mortespj, 257780)
+- Morten Tingstad Spjøtvoll	(mortespj, 257780)
 
-André Gunhildberget (andregg, 493561)
+- André Gunhildberget (andregg, 493561)
 
-Jan Zimmer (janzim, 493594)
+- Jan Zimmer (janzim, 493594)
 
 #
 Discord bot invite link:
@@ -14,54 +14,47 @@ Discord bot invite link:
 # Features 
 ## Discord bot
 
-Subscribe to a new RSS feed using a keyword (e.g. bbc) or link (e.g. http://feeds.bbci.co.uk/news/rss.xml):
+- Subscribe to a new RSS feed using a keyword (e.g. bbc) or link (e.g. http://feeds.bbci.co.uk/news/rss.xml):
 ```
 !newrss <keyword/link>
 ```
-#
 
-If more than one RSS link was found by the bot, you can choose feeds by:
+- If more than one RSS link was found by the bot, you can choose feeds by:
 ```
 !addrss <number/s>
 ```
 (Note: when choosing multiple numbers use space inbetween each number. E.g. "!addrss 3 7 19")
-#
 
-Remove a RSS subscription.
+- Remove a RSS subscription.
 ```
 !remrss <link/number>
 ```
 (Note: if link was not provided you will first receive a list and can then choose what feeds to remove)
-#
 
-Get a list of all feeds your server is subscribed to
+- Get a list of all feeds your server is subscribed to
 ```
 !listrss
 ```
-#
 
-Set a new channel where the bot should post RSS updates. Default: First channel in server.
+- Set a new channel where the bot should post RSS updates. Default: First channel in server.
 ```
 !configure <channel id/name>
 ```
-#
 
-Get a list of commands (Similiar to the ones here)
+- Get a list of commands (Similiar to the ones here)
 ```
 !commands
 ```
-#
 
 ### For API
 
-Get a new API key to use for the webAPI. Only the server owner can do this.
+- Get a new API key to use for the webAPI. Only the server owner can do this.
 ```
 !newkeyrss
 ```
 (NOTE: this will replace the old one!)
-#
 
-Get the current API key. Only the server owner can do this.
+- Get the current API key. Only the server owner can do this.
 ```
 !getkeyrss
 ```
