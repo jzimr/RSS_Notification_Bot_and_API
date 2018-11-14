@@ -107,8 +107,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if strings.HasPrefix(strings.ToLower(m.Content), "!listrss") {
 			listRSSFeeds(s, m)
 		}
-		if strings.HasPrefix(strings.ToLower(m.Content), "!rssnewkey") ||
-			strings.HasPrefix(strings.ToLower(m.Content), "!rssgetkey") {
+		if strings.HasPrefix(strings.ToLower(m.Content), "!newkeyrss") ||
+			strings.HasPrefix(strings.ToLower(m.Content), "!getkeyrss") {
 			manageAPIKey(s, m)
 		}
 		if strings.HasPrefix(strings.ToLower(m.Content), "!configure") {
@@ -125,7 +125,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-var tempFeeds = make(map[int]string)
+// Key = ID, Value = Link
+var availableFeeds = make(map[int]string)
 
 /*
 getRSSFeeds gets and lists rss feeds based on a search
@@ -151,7 +152,7 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		} else {
 			// Reset map
-			tempFeeds = make(map[int]string)
+			availableFeeds = make(map[int]string)
 
 			used = 1
 
@@ -161,15 +162,15 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 
 			for i := range links {
-				tempFeeds[i+1] = links[i] // Add feeds to a map temporarily
-
+				availableFeeds[i+1] = links[i] // Add feeds to a map temporarily
 			}
 		}
 		if used == 0 {
 			s.ChannelMessageSend(m.ChannelID, message)
 		} else {
-			linksAndNames := getRSSNamesAndLinks(links) // Map of RSS links (Key) and names (Value)
-			RSSListEmbed(s, m, linksAndNames)
+			// linksAndNames := getRSSNamesAndLinks(links) // Map of RSS links (Key) and names (Value)
+			extraInfo := "Use !addrss <numbers> to select multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
+			RSSListEmbed(s, m, links, availableFeeds, extraInfo)
 		}
 		// TODO: Better formatting
 	} else {
@@ -221,23 +222,23 @@ func addRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	var message string
 
-	if len(tempFeeds) == 0 {
+	if len(availableFeeds) == 0 {
 		s.ChannelMessageSend(m.ChannelID, "Error! There are no feeds to choose from!")
 	} else if len(words) >= 2 {
 		// Go through each feed number the user has selected
 		for i := 1; i < len(words); i++ {
 			num, err := strconv.Atoi(words[i])
 			if err != nil {
-				s.ChannelMessageSend(m.ChannelID, "Error! The numbers you entered were not numbers at all!")
+				s.ChannelMessageSend(m.ChannelID, "Error! The number(s) you entered were not numbers at all!")
 				return
 			}
 			// Subscribe the server to the RSS feeds
-			ok := db.manageSubscription(tempFeeds[num], m.GuildID, add)
+			ok := db.manageSubscription(availableFeeds[num], m.GuildID, add)
 
 			if ok {
-				message += "Added " + tempFeeds[num] + " to the subscription list.\n"
+				message += "Added " + availableFeeds[num] + " to the subscription list.\n"
 			} else {
-				message += "Already subscribed to RSS feed " + tempFeeds[num] + "\n"
+				message += "Already subscribed to RSS feed " + availableFeeds[num] + "\n"
 			}
 		}
 		s.ChannelMessageSend(m.ChannelID, message)
@@ -251,18 +252,33 @@ removeRSSFeeds lets the user choose which feeds to unsubscribe to
 */
 func removeRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	words := strings.Split(m.Content, " ")
-	// Show a list of feeds to choose from
-	listRSSFeeds(s, m)
 
 	var message string
 
 	if len(words) >= 2 {
-		// TODO: Implement
+		for i := 1; i < len(words); i++ {
+			num, err := strconv.Atoi(words[i])
+			if err != nil {
+				s.ChannelMessageSend(m.ChannelID, "Error! The number(s) you entered were not numbers at all!")
+				return
+			}
+			// Subscribe the server to the RSS feeds
+			ok := db.manageSubscription(subbedFeeds[num], m.GuildID, remove)
+
+			if ok {
+				message += "Removed " + subbedFeeds[num] + " from the subscription list.\n"
+			} else {
+				message += "You are not subscribed to " + subbedFeeds[num] + "\n"
+			}
+		}
 		s.ChannelMessageSend(m.ChannelID, message)
 	} else if len(words) < 2 {
 		s.ChannelMessageSend(m.ChannelID, "Error! You did not specify which RSS feeds you want to unsubscribe from!")
 	}
 }
+
+// Key = ID, Value = Name/Link
+var subbedFeeds = make(map[int]string)
 
 /*
 listRSSFeeds lists all the feeds currently subscribed to
@@ -274,19 +290,28 @@ func listRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "Nothing to show :(")
 		return
 	}
-
 	var message string
 	message += "Current RSS feeds subscribed to:\n"
 
+	// Reset map
+	subbedFeeds = make(map[int]string)
+
+	// Fix links
+	var links []string
 	for i, v := range subscribedTo {
 		if i >= 20 {
 			break
 		}
-
-		// Add LastUpdate so the user knows how long since he received last message? (In order to filter out e.g. discontinued RSS's)
-		message += strconv.Itoa(i+1) + ". " + v.URL + "\n"
+		links = append(links, v.URL)
 	}
-	s.ChannelMessageSend(m.ChannelID, message)
+
+	for i := range links {
+		subbedFeeds[i+1] = links[i] // Add feeds to a map temporarily
+	}
+
+	// Build embedded message
+	extraInfo := "Use !remrss <numbers> to remove multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
+	RSSListEmbed(s, m, links, subbedFeeds, extraInfo)
 }
 
 /*
@@ -373,31 +398,33 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 	s.ChannelMessageSendEmbed(channelid, &Embed)
 }
 
-func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, rssFeeds map[string]string) {
+func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, rssFeeds []string, numberedFeeds map[int]string, extraInfo string) {
 
 	var RssListEmbed discordgo.MessageEmbed
 
 	RssListEmbed.Title = "Found multiple RSS feeds:"
 	//RssListEmbed.Description = "Something about something something goes here"
-	i := 1
 
-	for key, val := range rssFeeds {
+	for i, link := range rssFeeds {
 		var RssListEmbedFields discordgo.MessageEmbedField
 
-		RssListEmbedFields.Value = key
-		if val != "" {
-			RssListEmbedFields.Name = strconv.Itoa(i) + ". " + val
+		RssListEmbedFields.Value = link
+		if numberedFeeds[i+1] != "" {
+			RssListEmbedFields.Name = strconv.Itoa(i+1) + ". " + getRSSName(numberedFeeds[i+1])
 		} else {
-			RssListEmbedFields.Name = strconv.Itoa(i) + ". <Empty>"
+			RssListEmbedFields.Name = strconv.Itoa(i+1) + ". <Empty>"
 		}
-		i++
 
 		RssListEmbed.Fields = append(RssListEmbed.Fields, &RssListEmbedFields)
 	}
 
 	var RssListEmbedFooter discordgo.MessageEmbedFooter
-	RssListEmbedFooter.Text = "Use !addrss <numbers> to select multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
-	RssListEmbed.Footer = &RssListEmbedFooter
+
+	// If the message should show some extra message at the bottom
+	if extraInfo != "" {
+		RssListEmbedFooter.Text = extraInfo
+		RssListEmbed.Footer = &RssListEmbedFooter
+	}
 
 	s.ChannelMessageSendEmbed(m.ChannelID, &RssListEmbed)
 }

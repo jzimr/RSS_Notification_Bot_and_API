@@ -90,17 +90,12 @@ func readRSS(RSS string) Channel {
 }
 
 /*
-getRSSNamesAndLinks returns a map of names and links of the rss feeds given in "links" parameter
+getRSSName returns the name of a RSS feed
 */
-func getRSSNamesAndLinks(links []string) (namesAndLinks map[string]string) {
-	m := make(map[string]string)
+func getRSSName(link string) (name string) {
+	channel := readRSS(link)
 
-	for _, link := range links {
-		channel := readRSS(link)
-		m[link] = channel.Title
-	}
-
-	return m
+	return channel.Title
 }
 
 /*
