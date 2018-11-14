@@ -21,9 +21,8 @@ Item holds articles or anything else the RSS file consists of
 It's reached through Channel
 */
 type Item struct {
-	Title string `xml:"title"`
-	Link  string `xml:"link"`
-
+	Title       string `xml:"title"`
+	Link        string `xml:"link"`
 	Description string `xml:"description"`
 
 	//Works for most sites. Not all
@@ -37,8 +36,7 @@ type Item struct {
 	} `xml:"media:content"`
 
 	//VG specific?
-	Image string `xml:"image"`
-
+	Image         string `xml:"image"`
 	PubDateString string `xml:"pubDate"`
 }
 

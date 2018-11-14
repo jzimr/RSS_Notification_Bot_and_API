@@ -30,6 +30,12 @@ func addRss(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Ensure you got a proper URL
+	if !isPageRSS(u.URL) {
+		http.Error(w, "Invalid request. Make sure you have proper json formating eg \n{\n\t\"url\": \"nrk.no/rss/.rss\"\n}", http.StatusBadRequest)
+		return
+	}
+
 	// Check if the RSS exists in the database
 	rss, _ := db.getRSS(u.URL)
 	// If the RSS exists, add the discord server subscription
@@ -95,7 +101,3 @@ func listRss(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 }
-
-//Delete by ID
-
-//Webhooks?
