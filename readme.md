@@ -9,7 +9,7 @@ Created by:
 - Jan Zimmer (janzim, 493594)
 
 #
-Discord bot invite link:
+Discord bot invite link: https://discordapp.com/oauth2/authorize?client_id=506877297182113798&permissions=8&scope=bot
 
 # Features 
 ## Discord bot
