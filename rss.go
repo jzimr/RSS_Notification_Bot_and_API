@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-// RSS ,,,
+/*
+	RSS holds the URL of an RSS site, an array of all servers subscribed to it
+	and a timestamp telling when the last time it was sent to subscribers was
+*/
 type RSS struct {
 	URL            string   `json:"url" bson:"url"`
 	LastUpdate     int64    `json:"lastUpdate" bson:"lastUpdate"`
@@ -128,7 +131,7 @@ func postRSS(RSS string) {
 }
 
 /*
-toTime converts from the RFC1123 format to time.Time
+toTime converts from the RFC1123(z) format to timestamp
 */
 func toTime(s string) (int64, error) {
 
@@ -150,10 +153,10 @@ func toTime(s string) (int64, error) {
 stringTrim removes unwanted characters
 */
 func stringTrim(s string) string {
-	s = strings.TrimRight(s, " ")
-	s = strings.TrimRight(s, "\n")
-	s = strings.TrimRight(s, "\"")
 	s = strings.TrimLeft(s, "\"")
+	s = strings.TrimRight(s, "\"")
+	s = strings.TrimRight(s, "\n")
+	s = strings.TrimRight(s, " ")
 
 	return s
 }
