@@ -69,6 +69,11 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 			t := z.Token()
 
 			for _, a := range t.Attr {
+				// Limit RSS search to max 20 links
+				if len(rssLinks) >= 20 {
+					return rssLinks
+				}
+
 				if a.Key == "href" && strings.Contains(a.Val, "rss") {
 					//Check if link on the page is valid
 					_, err := url.ParseRequestURI(a.Val)
