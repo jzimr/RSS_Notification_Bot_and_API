@@ -14,20 +14,22 @@ import (
 func Test_addRss(t *testing.T) {
 	DBInitTest()
 	r := mux.NewRouter()
-	r.HandleFunc("/api/{serverid}/rss", addRss).Methods("POST")
+	r.HandleFunc("/api/rss/{apiKey}", addRss).Methods("POST")
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
 	url := "https://www.nrk.no/rogaland/toppsaker.rss"
 	server := "123456789012345678"
+	apiKey := "NotArE4lap1K3yA5oaSC"
 
 	// Add a new Discord
 	var d Discord
 	d.ServerID = server
+	d.APIKey = apiKey
 	d, _ = db.addDiscord(d)
 
 	// Test empty body
-	resp, err := http.Post(ts.URL+"/api/"+server+"/rss", "application/json", nil)
+	resp, err := http.Post(ts.URL+"/api/rss/"+apiKey, "application/json", nil)
 	if err != nil {
 		t.Errorf("Error creating the POST request, %s", err)
 	}
@@ -38,7 +40,7 @@ func Test_addRss(t *testing.T) {
 	// Test malformed URL body
 	badTest := "{\"url\":\"https://www.nrk.no/rogaland/toppsaker\"}"
 
-	resp, err = http.Post(ts.URL+"/api/"+server+"/rss", "application/json", strings.NewReader(badTest))
+	resp, err = http.Post(ts.URL+"/api/rss/"+apiKey, "application/json", strings.NewReader(badTest))
 	if err != nil {
 		t.Errorf("Error creating the POST request, %s", err)
 	}
@@ -49,7 +51,7 @@ func Test_addRss(t *testing.T) {
 
 	// Test with proper body, new subscription
 	goodTest := "{\"url\":\"" + url + "\"}"
-	resp, err = http.Post(ts.URL+"/api/"+server+"/rss", "application/json", strings.NewReader(goodTest))
+	resp, err = http.Post(ts.URL+"/api/rss/"+apiKey, "application/json", strings.NewReader(goodTest))
 	if err != nil {
 		t.Errorf("Error creating the POST request, %s", err)
 	}
@@ -68,7 +70,7 @@ func Test_addRss(t *testing.T) {
 	}
 
 	// Test with proper body, already subscribed
-	resp, err = http.Post(ts.URL+"/api/"+server+"/rss", "application/json", strings.NewReader(goodTest))
+	resp, err = http.Post(ts.URL+"/api/rss/"+apiKey, "application/json", strings.NewReader(goodTest))
 	if err != nil {
 		t.Errorf("Error creating the POST request, %s", err)
 	}
@@ -93,7 +95,7 @@ func Test_addRss(t *testing.T) {
 func Test_listRss(t *testing.T) {
 	DBInitTest()
 	r := mux.NewRouter()
-	r.HandleFunc("/api/{serverid}/rss", listRss).Methods("GET")
+	r.HandleFunc("/api/rss/{apiKey}", listRss).Methods("GET")
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
@@ -101,10 +103,12 @@ func Test_listRss(t *testing.T) {
 	server := "123456789012345678"
 	url1 := "https://www.nrk.no/rogaland/toppsaker.rss"
 	url2 := "https://www.nrk.no/finnmark/siste.rss"
+	apiKey := "NotArE4lap1K3yA5oaSC"
 
 	// Add a new Discord
 	var d Discord
 	d.ServerID = server
+	d.APIKey = apiKey
 	d, _ = db.addDiscord(d)
 
 	// Add a couple RSS and subscribe the server to both of them
@@ -115,7 +119,7 @@ func Test_listRss(t *testing.T) {
 	db.updateRSS(r1)
 	db.updateRSS(r2)
 
-	resp, err := http.Get(ts.URL + "/api/" + server + "/rss")
+	resp, err := http.Get(ts.URL + "/api/rss/" + apiKey)
 	if err != nil {
 		t.Errorf("Error making the GET request, %s", err)
 	}
