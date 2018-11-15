@@ -1,1 +1,1 @@
-web: api
+web: RSS_Notification_Bot_and_API
