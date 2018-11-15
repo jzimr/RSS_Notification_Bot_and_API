@@ -73,7 +73,6 @@ func ready(s *discordgo.Session, event *discordgo.Ready) {
 	// Set the playing status.
 	s.UpdateStatus(0, "!commands")
 
-	//Set the GlobalSession to be equal to current Discord Session.
 	GlobalSession = s
 
 }
@@ -322,7 +321,7 @@ func listRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Build embedded message
-	extraInfo := "Use !remrss <numbers> to remove multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
+	extraInfo := "Use !remrss <numbers> to remove multiple feeds by putting a space in-between numbers. E.g. \"!remrss 3 7 19\""
 	RSSListEmbed(s, m, links, subbedFeeds, extraInfo)
 }
 
@@ -479,6 +478,7 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 			log.Println("db", err)
 		}
 		//Post to first channel that the bot needs to be configured
+		s.ChannelMessageSend(channels[1].ID, "Please configure the bot. Use the following command `!configure`.")
 	}
 
 }
