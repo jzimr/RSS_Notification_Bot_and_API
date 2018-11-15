@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/net/html"
 )
@@ -63,6 +64,8 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 	}
 	defer resp.Body.Close()
 
+	clock := time.Now()
+
 	// bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	// fmt.Println(string(bodyBytes))
 
@@ -81,6 +84,7 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 			for _, a := range t.Attr {
 				// Limit RSS search to max 20 links
 				if len(rssLinks) >= 20 {
+					fmt.Println(time.Since(clock).Seconds())
 					return rssLinks
 				}
 
@@ -103,6 +107,10 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 			}
 		}
 	}
+	duration := time.Since(clock).Seconds()
+
+	fmt.Println(duration)
+
 	return rssLinks
 }
 
@@ -175,8 +183,6 @@ func Crawl(URL string) (RSSLinks []string) {
 		links = append(links, URL)
 		return links
 	}
-
-	fmt.Println("lul")
 
 	// Search through the webpage's source code after an "rss" link
 	links = fetchRSSLinks(URL)

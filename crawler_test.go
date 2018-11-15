@@ -39,10 +39,7 @@ func TestGoogleSearch(t *testing.T) {
 	rssLinks = googleSearchRssLinks(keyword)
 
 	if len(rssLinks) != 1 {
-		t.Errorf("Expected 1 result, got " + strconv.Itoa(len(rssLinks)))
-	}
-	if rssLinks[0] != "https://podkast.nrk.no/program/urix.rss" {
-		t.Errorf("Expected rss feed https://podkast.nrk.no/program/to_hvite_menn.rss, got " + rssLinks[0])
+		t.Errorf("Expected one 1 result, got " + strconv.Itoa(len(rssLinks)))
 	}
 
 	// Google returns the desired results
