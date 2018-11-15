@@ -114,8 +114,8 @@ func postRSS(RSS string) {
 	if c.LastUpdate != r.LastUpdate {
 		for _, server := range r.DiscordServers {
 			discord, err := db.getDiscord(server)
-			if err != nil {
-				fmt.Println(err)
+			if err != nil { //Something went wrong, server might be missing from db
+				fmt.Println("PostRSS(): ", err)
 			}
 
 			//Forward channel to function which sends an embeded message to the correct discord channel

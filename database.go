@@ -266,6 +266,16 @@ func (db *DBInfo) updateRSS(r RSS) error {
 		fmt.Printf("Error in updateRSS(): %v", err.Error())
 	}
 
+	//Check if discord array is empty. If yes delete this rss document
+	dbR, err := db.getRSS(r.URL)
+	if err != nil {
+		fmt.Printf("Error in updateRSS(): %v", err.Error())
+	}
+
+	if len(dbR.DiscordServers) == 0 {
+		err = db.deleteRSS(dbR.URL)
+	}
+
 	return err
 }
 
@@ -328,7 +338,7 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 	}
 	rss, err := db.getRSS(rssURL)
 	if err != nil {
-		fmt.Printf("%v", err.Error())
+		fmt.Printf("manageSubscriptions(): %v", err.Error())
 	}
 
 	// Check if discord server is subscribed to RSS feed or not

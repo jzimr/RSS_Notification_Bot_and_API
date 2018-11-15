@@ -478,7 +478,7 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 			log.Println("db", err)
 		}
 		//Post to first channel that the bot needs to be configured
-		s.ChannelMessageSend(channels[1].ID, "Please configure the bot. Use the following command `!configure`.")
+		s.ChannelMessageSend(channels[1].ID, "Please configure the bot. Use the following command !configure.")
 	}
 
 }
