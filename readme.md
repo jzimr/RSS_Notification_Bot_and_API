@@ -58,9 +58,37 @@ Discord bot invite link: https://discordapp.com/oauth2/authorize?client_id=50687
 ```
 !getkeyrss
 ```
-#
 
-## WebAPI
+## Web API
+
+### Paths
+
+The root url is:
+
+```
+http://rss-notification.herokuapp.com/
+```
+
+There are currently three available requests in the API.
+
+- (Get) List all registered RSS URLs
+```
+http://rss-notification.herokuapp.com/api/rss
+```
+
+- (Get) List your servers subscriptions
+```
+http://rss-notification.herokuapp.com/api/rss/{apiKey}
+```
+
+- (Post) Add a new RSS subscription to your server
+```
+http://rss-notification.herokuapp.com/api/{apiKey}
+```
+
+#### How to get an API key
+
+See "For API" under Discord bot
 
 # Original Project Plan
 
