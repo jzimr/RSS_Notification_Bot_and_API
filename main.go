@@ -347,7 +347,7 @@ func manageAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	var message string
 
-	if strings.HasPrefix(strings.ToLower(m.Content), "!rssnewkey") {
+	if strings.HasPrefix(strings.ToLower(m.Content), "!newkeyrss") {
 		// Generate a new key
 		discord.APIKey = generateNewKey()
 		err = db.updateDiscord(discord)
@@ -355,7 +355,7 @@ func manageAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 			log.Println("Something went wrong updating the API key in database, " + err.Error())
 		}
 		message += "New API key: "
-	} else if strings.HasPrefix(strings.ToLower(m.Content), "!rssgetkey") {
+	} else if strings.HasPrefix(strings.ToLower(m.Content), "!getkeyrss") {
 		// Get key
 		message += "API key: "
 	}
