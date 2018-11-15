@@ -105,7 +105,6 @@ postRSS goes through each discord server that subscribes to a RSS and sends a me
 func postRSS(RSS string) {
 	// c is the latest data from the URL
 	c := readRSS(RSS)
-	log.Println(RSS)
 
 	// r is used to see when we last sent the message from this URL
 	r, err := db.getRSS(RSS)
@@ -123,7 +122,6 @@ func postRSS(RSS string) {
 
 			//Forward channel to function which sends an embeded message to the correct discord channel
 			embedMessage(GlobalSession, discord.ChannelID, c)
-			log.Printf("Channel ID: %v", discord.ChannelID)
 		}
 		r.LastUpdate = c.LastUpdate
 		db.updateRSS(r)

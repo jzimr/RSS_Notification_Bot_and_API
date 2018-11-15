@@ -52,9 +52,6 @@ func main() {
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Discord bot is now running.  Press CTRL-C to exit.")
 
-	//Init and start the router
-	routerInit()
-
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
