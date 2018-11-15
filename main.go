@@ -457,8 +457,6 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		return
 	}
 
-	log.Println("serverid:", event.Guild.ID)
-
 	var discordServer Discord
 	discordServer.ServerID = event.Guild.ID
 
@@ -469,7 +467,17 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 		db.addDiscord(discordServer)
 	}
 
-	if r.ChannelID == "" {
+	if r.ChannelID == "" { //Currently no channel set
+		channels, err := s.GuildChannels(event.Guild.ID)
+		if err != nil {
+			log.Println(err)
+		}
+		discordServer.ChannelID = channels[1].ID
+
+		err = db.updateDiscord(discordServer)
+		if err != nil {
+			log.Println("db", err)
+		}
 		//Post to first channel that the bot needs to be configured
 	}
 
