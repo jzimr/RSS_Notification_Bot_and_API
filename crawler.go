@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -27,12 +26,23 @@ func isPageRSS(URL string) (isRSS bool) {
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36")
 	resp, err := baseClient.Do(req)
 	if err != nil {
-		log.Println("An error occured while trying to make GET requestsssss, " + err.Error())
-		return
+		log.Println("An error occured while trying to make GET requests, " + err.Error())
+		return false
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	// Read body
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Could not decode body, " + err.Error())
+		return false
+	}
+
+	// Ensure that body contains the data we need to slice below
+	if len(body) < 17 {
+		return false
+	}
+
 	doctype := string(body)[0:16] // Fixes error on some RSS feeds
 
 	if strings.Contains(doctype, "<?xml version") {
@@ -74,13 +84,18 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 					return rssLinks
 				}
 
-				if a.Key == "href" && strings.Contains(a.Val, "rss") {
-					//Check if link on the page is valid
-					_, err := url.ParseRequestURI(a.Val)
-					if err != nil {
-						continue
+				relatedAttrExists := false
+				// Find other attribute elements that are useful to identify an RSS link
+				for _, a := range t.Attr {
+					if a.Key == "type" && a.Val == "application/rss+xml" {
+						relatedAttrExists = true
+						break
 					}
+				}
 
+				if a.Key == "href" && (relatedAttrExists || strings.Contains(a.Val, "rss")) {
+
+					// Check if page is a valid RSS feed
 					if isPageRSS(a.Val) {
 						rssLinks = append(rssLinks, a.Val)
 					}
@@ -160,6 +175,8 @@ func Crawl(URL string) (RSSLinks []string) {
 		links = append(links, URL)
 		return links
 	}
+
+	fmt.Println("lul")
 
 	// Search through the webpage's source code after an "rss" link
 	links = fetchRSSLinks(URL)
