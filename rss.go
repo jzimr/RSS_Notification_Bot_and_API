@@ -119,10 +119,10 @@ func toTime(s string) (int64, error) {
 stringTrim removes unwanted characters
 */
 func stringTrim(s string) string {
-	s = strings.TrimRight(s, " ")
-	s = strings.TrimRight(s, "\n")
-	s = strings.TrimRight(s, "\"")
 	s = strings.TrimLeft(s, "\"")
+	s = strings.TrimRight(s, "\"")
+	s = strings.TrimRight(s, "\n")
+	s = strings.TrimRight(s, " ")
 
 	return s
 }
