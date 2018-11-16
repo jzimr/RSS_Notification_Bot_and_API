@@ -101,6 +101,9 @@ func (db *DBInfo) deleteDiscord(d Discord) error {
 	defer session.Close()
 
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Remove(bson.M{"serverid": d.ServerID})
+	if err != nil {
+		return err
+	}
 
 	Rs, err := db.getAllRSS()
 	if err != nil {
@@ -110,11 +113,20 @@ func (db *DBInfo) deleteDiscord(d Discord) error {
 	for _, r := range Rs {
 		// Try to remove the discord serverId
 		err = session.DB(db.DBName).C(db.CollectionRSS).Update(bson.M{"url": r.URL}, bson.M{"$pull": bson.M{"discordServers": d.ServerID}})
+		if err != nil {
+			return err
+		}
 		// Check if there's still servers subscribed to this rss, delete it if not
-		r, _ = db.getRSS(r.URL)
+		r, err = db.getRSS(r.URL)
+		if err != nil {
+			return err
+		}
 		if len(r.DiscordServers) == 0 {
 			log.Println("Delete RSS from DB. Empty DiscordList")
-			db.deleteRSS(r.URL)
+			err = db.deleteRSS(r.URL)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -138,7 +150,7 @@ func (db *DBInfo) updateDiscord(d Discord) error {
 /*
 deleteAllDiscord deletes every Discord object
 */
-func (db *DBInfo) deleteAllDiscord() {
+func (db *DBInfo) deleteAllDiscord() (rError error) {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -146,7 +158,8 @@ func (db *DBInfo) deleteAllDiscord() {
 	defer session.Close()
 
 	// Delete everything from the collection
-	session.DB(db.DBName).C(db.CollectionDiscord).RemoveAll(nil)
+	_, err = session.DB(db.DBName).C(db.CollectionDiscord).RemoveAll(nil)
+	return err
 }
 
 /*
@@ -307,7 +320,10 @@ func (db *DBInfo) deleteAllRSS() {
 	defer session.Close()
 
 	// Delete everything from the collection
-	session.DB(db.DBName).C(db.CollectionRSS).RemoveAll(nil)
+	_, err = session.DB(db.DBName).C(db.CollectionRSS).RemoveAll(nil)
+	if err != nil {
+		fmt.Printf("Error in deleteAllRSS(): %v", err.Error())
+	}
 }
 
 /*
@@ -365,7 +381,10 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 
 		// Subscribe server to RSS feed
 		rss.DiscordServers = append(rss.DiscordServers, serverID)
-		db.updateRSS(rss)
+		err = db.updateRSS(rss)
+		if err != nil {
+			fmt.Printf("Error in deleteAllRSS(): %v", err.Error())
+		}
 
 		return true
 		// Remove subscription
@@ -378,7 +397,10 @@ func (db *DBInfo) manageSubscription(rssURL string, serverID string, option int)
 
 		// Remove subscription of server to RSS feed
 		rss.DiscordServers = append(rss.DiscordServers[:index], rss.DiscordServers[index+1:]...)
-		db.updateRSS(rss)
+		err = db.updateRSS(rss)
+		if err != nil {
+			fmt.Printf("Error in deleteAllRSS(): %v", err.Error())
+		}
 
 		return true
 	} else {

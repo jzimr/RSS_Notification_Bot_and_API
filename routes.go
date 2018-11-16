@@ -42,10 +42,18 @@ func addRss(w http.ResponseWriter, r *http.Request) {
 	if rss.LastUpdate != 0 {
 		success := db.manageSubscription(rss.URL, discord.ServerID, add)
 		if !success {
-			fmt.Fprintf(w, "%v is already subscribed to %v\n", discord.ServerID, rss.URL)
+			_, err = fmt.Fprintf(w, "%v is already subscribed to %v\n", discord.ServerID, rss.URL)
+			if err != nil {
+				http.Error(w, "Couldn't print the result", http.StatusBadRequest)
+				return
+			}
 			return
 		}
-		fmt.Fprintf(w, "%v is now subscribed to %v\n", discord.ServerID, rss.URL)
+		_, err = fmt.Fprintf(w, "%v is now subscribed to %v\n", discord.ServerID, rss.URL)
+		if err != nil {
+			http.Error(w, "Couldn't print the result", http.StatusBadRequest)
+			return
+		}
 		return
 	}
 
@@ -56,7 +64,11 @@ func addRss(w http.ResponseWriter, r *http.Request) {
 	}
 	db.manageSubscription(rss.URL, discord.ServerID, add)
 
-	fmt.Fprintf(w, "%v is now subscribed to %v\n", discord.ServerID, rss.URL)
+	_, err = fmt.Fprintf(w, "%v is now subscribed to %v\n", discord.ServerID, rss.URL)
+	if err != nil {
+		http.Error(w, "Couldn't print the result", http.StatusBadRequest)
+		return
+	}
 
 }
 

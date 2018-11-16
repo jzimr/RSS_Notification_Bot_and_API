@@ -44,8 +44,12 @@ func Test_addRss(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating the POST request, %s", err)
 	}
+	var all []byte
 	if resp.StatusCode != http.StatusBadRequest {
-		all, _ := ioutil.ReadAll(resp.Body)
+		all, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Errorf("Error with ioutil.ReadAll %s", err)
+		}
 		t.Errorf("Expected StatusCode %d, received %d, Body: %s", http.StatusBadRequest, resp.StatusCode, all)
 	}
 
@@ -56,7 +60,10 @@ func Test_addRss(t *testing.T) {
 		t.Errorf("Error creating the POST request, %s", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		all, _ := ioutil.ReadAll(resp.Body)
+		all, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Errorf("Error with ioutil.ReadAll %s", err)
+		}
 		t.Errorf("Expected StatusCode %d, received %d, Body: %s", http.StatusOK, resp.StatusCode, all)
 	}
 
@@ -130,6 +137,9 @@ func Test_listRss(t *testing.T) {
 
 	var a []RSS
 	err = json.NewDecoder(resp.Body).Decode(&a)
+	if err != nil {
+		t.Errorf("Error decoding, %s", err)
+	}
 	if len(a) != 2 {
 		t.Errorf("Expected two elements, got %v", len(a))
 	}
@@ -164,6 +174,9 @@ func Test_listAllRss(t *testing.T) {
 
 	var a []RSS
 	err = json.NewDecoder(resp.Body).Decode(&a)
+	if err != nil {
+		t.Errorf("Error decoding, %s", err)
+	}
 	if len(a) != 2 {
 		t.Errorf("Expected two elements, got %v", len(a))
 	}

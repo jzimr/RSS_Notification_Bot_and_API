@@ -23,7 +23,10 @@ func DBInitTest() {
 	db.CollectionRSS = "rss"
 }
 
-func Test_Database(t *testing.T) {
+/*
+Test_Database_Rss tests that all RSS related database operations works as intended, and prepares some data for the discord test
+*/
+func Test_Database_Rss(t *testing.T) {
 	// Make sure the test runs the test database
 	DBInitTest()
 	// Test that delete all functions work, and clean up the database for the tests
@@ -88,21 +91,25 @@ func Test_Database(t *testing.T) {
 	if i != 2 || err != nil {
 		t.Errorf("Expected 2 element, got %v: %v", i, err)
 	}
+}
 
-	/*
-		Discord tests
-	*/
+/*
+	Test_Database_Discord is a direct continuation of Test_Database_Rss and relies on the database files created in it
+*/
+func Test_Database_Discord(t *testing.T) {
+	url2 := "https://www.nrk.no/rogaland/toppsaker.rss"
+	server := "506870206505811969"
 
 	// Add a new Discord
 	var d Discord
 	d.ServerID = server
-	d, err = db.addDiscord(d)
+	d, err := db.addDiscord(d)
 	if err != nil {
 		t.Errorf("Problem with addDiscord(): %v", err)
 	}
 
 	// Check that we do indeed have 1 element now
-	i, err = db.countDiscord()
+	i, err := db.countDiscord()
 	if i != 1 || err != nil {
 		t.Errorf("Expected 1 element, got %v: %v", i, err)
 	}
@@ -136,7 +143,7 @@ func Test_Database(t *testing.T) {
 		t.Errorf("Expected 1 element, got %v: %v", i, err)
 	}
 	// Check that there's only one server left for rr (was two before deleteDiscord)
-	rr, _ = db.getRSS(url2)
+	rr, _ := db.getRSS(url2)
 	if len(rr.DiscordServers) != 1 {
 		t.Errorf("Expected 1 element, got %v: %v", i, err)
 	}

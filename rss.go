@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-// RSS ,,,
+/*
+RSS holds the URL of an RSS site, an array of all servers subscribed to it
+and a timestamp telling when the last time it was sent to subscribers was
+*/
 type RSS struct {
 	URL            string   `json:"url" bson:"url"`
 	LastUpdate     int64    `json:"lastUpdate" bson:"lastUpdate"`
@@ -21,22 +24,9 @@ Item holds articles or anything else the RSS file consists of
 It's reached through Channel
 */
 type Item struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	Description string `xml:"description"`
-
-	//Works for most sites. Not all
-	Enclosure struct {
-		Url string `xml:"url,attr"`
-	} `xml:"enclosure"`
-
-	//NYTIMES and others. DOES NOT WORK ATM
-	Media struct {
-		Url string `xml:"url,attr"`
-	} `xml:"media:content"`
-
-	//VG specific?
-	Image         string `xml:"image"`
+	Title         string `xml:"title"`
+	Link          string `xml:"link"`
+	Description   string `xml:"description"`
 	PubDateString string `xml:"pubDate"`
 }
 
@@ -47,18 +37,13 @@ type Channel struct {
 	OriginalRSSLink string //FallbackMethod
 	Title           string `xml:"channel>title"`
 	LastUpdate      int64
-
-	Image struct {
-		Url string `xml:"url"`
-	} `xml:"channel>image"`
-
-	Items []Item `xml:"channel>item"`
+	Items           []Item `xml:"channel>item"`
 }
 
 /*
-	readRSS takes an RSS file as a parameter and parses it.
-	It then checks if it's been made any changes since last check,
-		and posts to subscribed servers if it has been.
+readRSS takes an RSS file as a parameter and parses it.
+It then checks if it's been made any changes since last check,
+	and posts to subscribed servers if it has been.
 */
 func readRSS(RSS string) Channel {
 	// Reads the RSS file
@@ -88,16 +73,7 @@ func readRSS(RSS string) Channel {
 }
 
 /*
-getRSSName returns the name of a RSS feed
-*/
-func getRSSName(link string) (name string) {
-	channel := readRSS(link)
-
-	return channel.Title
-}
-
-/*
-toTime converts from the RFC1123 format to time.Time
+toTime converts from the RFC1123(z) format to timestamp
 */
 func toTime(s string) (int64, error) {
 
@@ -145,9 +121,6 @@ func isPageRSS(URL string) (isRSS bool) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	doctype := string(body)[0:16] // Fixes error on some RSS feeds
 
-	if strings.Contains(doctype, "<?xml version") {
-		return true
-	}
+	return strings.Contains(doctype, "<?xml version")
 
-	return false
 }
