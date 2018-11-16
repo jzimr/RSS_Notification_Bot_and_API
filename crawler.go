@@ -45,11 +45,7 @@ func isPageRSS(URL string) (isRSS bool) {
 
 	doctype := string(body)[0:16] // Fixes error on some RSS feeds
 
-	if strings.Contains(doctype, "<?xml version") {
-		return true
-	}
-
-	return false
+	return strings.Contains(doctype, "<?xml version")
 }
 
 /*
@@ -78,7 +74,6 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 		case tt == html.ErrorToken:
 			// End of the document, we're done
 			isDone = true
-			break
 		case tt == html.StartTagToken:
 			t := z.Token()
 

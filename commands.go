@@ -74,8 +74,7 @@ func configure(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	var index int
-	index = -1
+	index := -1
 	channels, err := s.GuildChannels(m.GuildID)
 	if err != nil {
 		fmt.Println(err, " something went horribly wrong")
@@ -88,7 +87,7 @@ func configure(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if index == -1 {
-		_, err := s.ChannelMessageSend(m.ChannelID, "Invalid channel id or channel name. Try again")
+		_, err = s.ChannelMessageSend(m.ChannelID, "Invalid channel id or channel name. Try again")
 		if err != nil {
 			log.Println("Could not send message to discord in configure(), " + err.Error())
 		}
@@ -163,7 +162,7 @@ func removeRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		for i := 1; i < len(words); i++ {
 			num, err := strconv.Atoi(words[i])
 			if err != nil {
-				s.ChannelMessageSend(m.ChannelID, "Error! The number(s) you entered were not numbers at all!")
+				_, err = s.ChannelMessageSend(m.ChannelID, "Error! The number(s) you entered were not numbers at all!")
 				if err != nil {
 					log.Println("Could not send message to discord in removeRSSFeeds(), " + err.Error())
 				}
@@ -203,8 +202,6 @@ func listRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		return
 	}
-	var message string
-	message += "Current RSS feeds subscribed to:\n"
 
 	// Reset map
 	subbedFeeds = make(map[int]string)
@@ -238,7 +235,7 @@ func manageAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Only server owner is allowed to create API keys
 	if m.Author.ID != guild.OwnerID {
-		_, err := s.ChannelMessageSend(m.ChannelID, "Only the owner of the server has permission to this command.")
+		_, err = s.ChannelMessageSend(m.ChannelID, "Only the owner of the server has permission to this command.")
 		if err != nil {
 			log.Println("Could not send message to discord in addRSSFeeds(), " + err.Error())
 		}

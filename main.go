@@ -59,8 +59,10 @@ func main() {
 	stop <- true
 
 	// Cleanly close down the Discord session.
-	dg.Close()
-
+	err = dg.Close()
+	if err != nil {
+		fmt.Println("Error closing Discord session: ", err)
+	}
 }
 
 // This function will be called (due to AddHandler above) when the bot receives
@@ -68,7 +70,10 @@ func main() {
 func ready(s *discordgo.Session, event *discordgo.Ready) {
 
 	// Set the playing status.
-	s.UpdateStatus(0, "!commands")
+	err := s.UpdateStatus(0, "!commands")
+	if err != nil {
+		fmt.Println("Error updating status: ", err)
+	}
 
 	GlobalSession = s
 
@@ -177,7 +182,7 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 		EmbedImage.URL = rss.Items[0].Media.URL
 	} else {
 		//Fallback to website image
-		EmbedImage.URL = rss.Image.Url
+		EmbedImage.URL = rss.Image.URL
 	}
 	Embed.Image = &EmbedImage
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/xml"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -10,8 +9,8 @@ import (
 )
 
 /*
-	RSS holds the URL of an RSS site, an array of all servers subscribed to it
-	and a timestamp telling when the last time it was sent to subscribers was
+RSS holds the URL of an RSS site, an array of all servers subscribed to it
+and a timestamp telling when the last time it was sent to subscribers was
 */
 type RSS struct {
 	URL            string   `json:"url" bson:"url"`
@@ -52,16 +51,16 @@ type Channel struct {
 	LastUpdate      int64
 
 	Image struct {
-		Url string `xml:"url"`
+		URL string `xml:"url"`
 	} `xml:"channel>image"`
 
 	Items []Item `xml:"channel>item"`
 }
 
 /*
-	readRSS takes an RSS file as a parameter and parses it.
-	It then checks if it's been made any changes since last check,
-		and posts to subscribed servers if it has been.
+readRSS takes an RSS file as a parameter and parses it.
+It then checks if it's been made any changes since last check,
+	and posts to subscribed servers if it has been.
 */
 func readRSS(RSS string) Channel {
 	// Reads the RSS file
@@ -109,22 +108,25 @@ func postRSS(RSS string) {
 	// r is used to see when we last sent the message from this URL
 	r, err := db.getRSS(RSS)
 	if err != nil {
-		fmt.Printf("%v", err.Error())
+		log.Println(err)
 	}
-
+	var discord Discord
 	// If the the latest update in the RSS file (c) is not the same as the latest update we sent out (r)
 	if c.LastUpdate != r.LastUpdate {
 		for _, server := range r.DiscordServers {
-			discord, err := db.getDiscord(server)
-			if err != nil { //Something went wrong, server might be missing from db
-				fmt.Println("PostRSS(): ", err)
+			discord, err = db.getDiscord(server)
+			if err != nil {
+				log.Println(err)
 			}
 
 			//Forward channel to function which sends an embeded message to the correct discord channel
 			embedMessage(GlobalSession, discord.ChannelID, c)
 		}
 		r.LastUpdate = c.LastUpdate
-		db.updateRSS(r)
+		err = db.updateRSS(r)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 

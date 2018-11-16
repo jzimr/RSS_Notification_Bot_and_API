@@ -25,7 +25,10 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 	r, err := db.getDiscord(discordServer.ServerID)
 
 	if err != nil && r.ServerID == "" {
-		db.addDiscord(discordServer)
+		_, err = db.addDiscord(discordServer)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	if r.ChannelID == "" { //Currently no channel set
@@ -40,7 +43,10 @@ func guildCreate(s *discordgo.Session, event *discordgo.GuildCreate) {
 			log.Println("db", err)
 		}
 		//Post to first channel that the bot needs to be configured
-		s.ChannelMessageSend(channels[1].ID, "Please configure the bot. Use the following command !configure.")
+		_, err = s.ChannelMessageSend(channels[1].ID, "Please configure the bot. Use the following command !configure.")
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 }
