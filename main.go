@@ -15,7 +15,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-//This may very well be horribly bad <-- Yup
+// GlobalSession is needed
 var GlobalSession *discordgo.Session
 
 func main() {
@@ -169,12 +169,12 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 
 	var EmbedImage discordgo.MessageEmbedImage
 
-	if len(rss.Items[0].Enclosure.Url) > 1 { //Standard
-		EmbedImage.URL = rss.Items[0].Enclosure.Url
+	if len(rss.Items[0].Enclosure.URL) > 1 { //Standard
+		EmbedImage.URL = rss.Items[0].Enclosure.URL
 	} else if len(rss.Items[0].Image) > 1 { //Weird websites like VG
 		EmbedImage.URL = rss.Items[0].Image
-	} else if len(rss.Items[0].Media.Url) > 1 { //"media" container
-		EmbedImage.URL = rss.Items[0].Media.Url
+	} else if len(rss.Items[0].Media.URL) > 1 { //"media" container
+		EmbedImage.URL = rss.Items[0].Media.URL
 	} else {
 		//Fallback to website image
 		EmbedImage.URL = rss.Image.Url
@@ -187,6 +187,9 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 	}
 }
 
+/*
+RSSListEmbed embeds feeds into message
+*/
 func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, rssFeeds []string, numberedFeeds map[int]string, extraInfo string) {
 
 	var RssListEmbed discordgo.MessageEmbed

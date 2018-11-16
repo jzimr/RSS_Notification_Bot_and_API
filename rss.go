@@ -30,12 +30,12 @@ type Item struct {
 
 	//Works for most sites. Not all
 	Enclosure struct {
-		Url string `xml:"url,attr"`
+		URL string `xml:"url,attr"`
 	} `xml:"enclosure"`
 
 	//NYTIMES and others. DOES NOT WORK ATM
 	Media struct {
-		Url string `xml:"url,attr"`
+		URL string `xml:"url,attr"`
 	} `xml:"media:content"`
 
 	//VG specific?

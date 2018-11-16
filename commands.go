@@ -99,7 +99,10 @@ func configure(s *discordgo.Session, m *discordgo.MessageCreate) {
 	discordServer.ServerID = m.GuildID
 	discordServer.ChannelID = channels[index].ID
 
-	db.updateDiscord(discordServer)
+	err = db.updateDiscord(discordServer)
+	if err != nil {
+		log.Println("Could not update discord item in db in configure(), ", err.Error())
+	}
 	_, err = s.ChannelMessageSend(m.ChannelID, "Text channel with name "+channels[index].Name+" are now set as the default notification channel.")
 	if err != nil {
 		log.Println("Could not send message to discord in configure(), " + err.Error())
@@ -124,7 +127,7 @@ func addRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 		for i := 1; i < len(words); i++ {
 			num, err := strconv.Atoi(words[i])
 			if err != nil {
-				s.ChannelMessageSend(m.ChannelID, "Error! The number(s) you entered were not numbers at all!")
+				_, err = s.ChannelMessageSend(m.ChannelID, "Error! The number(s) you entered were not numbers at all!")
 				if err != nil {
 					log.Println("Could not send message to discord in addRSSFeeds(), " + err.Error())
 				}
