@@ -23,8 +23,11 @@ func generateNewKey() (key string) {
 
 	var newKey string
 
-	for i := 0; i < 20; i++ {
-		newKey += chars[genRandInt()]
+	for ok := true; ok; ok = isKeyTaken(newKey) {
+
+		for i := 0; i < 20; i++ {
+			newKey += chars[genRandInt()]
+		}
 	}
 
 	log.Println("Generated a new key: " + newKey)
@@ -39,7 +42,16 @@ func genRandInt() (num int) {
 	return rand.Intn(63)
 }
 
-func isKeyTaken() (isTaken bool) {
-	// TODO: Check if key is not taken yet
+func isKeyTaken(key string) (isTaken bool) {
+
+	d, err := db.getDiscordFromAPI(key)
+	if err != nil {
+		log.Println("error in isKeyTaken()", err)
+	}
+
+	if d.ChannelID != "" || d.ServerID != "" {
+		return true
+	}
+
 	return false
 }
