@@ -8,6 +8,10 @@ Created by:
 
 - Jan Zimmer (janzim, 493594)
 
+# Introduction
+
+This project is split into two branches. In master you have the discord bot and web crawler. This is deployed with a script on OpenStack. In the API branch you find the API files which is deployed to Heroku. You will also find a seperate readme.md file for that branch explaining how to use it. 
+
 #
 Discord bot invite link: https://discordapp.com/oauth2/authorize?client_id=506877297182113798&permissions=8&scope=bot
 
