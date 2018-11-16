@@ -101,6 +101,9 @@ func (db *DBInfo) deleteDiscord(d Discord) error {
 	defer session.Close()
 
 	err = session.DB(db.DBName).C(db.CollectionDiscord).Remove(bson.M{"serverid": d.ServerID})
+	if err != nil {
+		return err
+	}
 
 	Rs, err := db.getAllRSS()
 	if err != nil {
@@ -111,10 +114,16 @@ func (db *DBInfo) deleteDiscord(d Discord) error {
 		// Try to remove the discord serverId
 		err = session.DB(db.DBName).C(db.CollectionRSS).Update(bson.M{"url": r.URL}, bson.M{"$pull": bson.M{"discordServers": d.ServerID}})
 		// Check if there's still servers subscribed to this rss, delete it if not
-		r, _ = db.getRSS(r.URL)
+		r, err = db.getRSS(r.URL)
+		if err != nil {
+			return err
+		}
 		if len(r.DiscordServers) == 0 {
 			log.Println("Delete RSS from DB. Empty DiscordList")
-			db.deleteRSS(r.URL)
+			err = db.deleteRSS(r.URL)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -138,7 +147,7 @@ func (db *DBInfo) updateDiscord(d Discord) error {
 /*
 deleteAllDiscord deletes every Discord object
 */
-func (db *DBInfo) deleteAllDiscord() {
+func (db *DBInfo) deleteAllDiscord() (rError error) {
 	session, err := mgo.Dial(db.DBURL)
 	if err != nil {
 		panic(err)
@@ -146,7 +155,8 @@ func (db *DBInfo) deleteAllDiscord() {
 	defer session.Close()
 
 	// Delete everything from the collection
-	session.DB(db.DBName).C(db.CollectionDiscord).RemoveAll(nil)
+	_, err = session.DB(db.DBName).C(db.CollectionDiscord).RemoveAll(nil)
+	return err
 }
 
 /*

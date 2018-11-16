@@ -17,11 +17,10 @@ getRSSFeeds gets and lists rss feeds based on a search
 */
 func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	words := strings.Split(m.Content, " ")
+	var message string
+
 	if len(words) == 2 {
 		links := Crawl(words[1]) // List of all RSS links
-
-		var used = 0
-		var message string
 
 		if len(links) == 0 {
 			message = "No RSS link found on the given webpage: '" + words[1] + "'"
@@ -38,8 +37,6 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 			// Reset map
 			availableFeeds = make(map[int]string)
 
-			used = 1
-
 			// Max feeds listed per search is currently 20
 			if len(links) > 20 {
 				links = links[:20]
@@ -48,18 +45,19 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 			for i := range links {
 				availableFeeds[i+1] = links[i] // Add feeds to a map temporarily
 			}
-		}
-		if used == 0 {
-			s.ChannelMessageSend(m.ChannelID, message)
-		} else {
-			// linksAndNames := getRSSNamesAndLinks(links) // Map of RSS links (Key) and names (Value)
+
 			extraInfo := "Use !addrss <numbers> to select multiple feeds by putting a space in-between numbers. E.g. \"!addrss 3 7 19\""
 			RSSListEmbed(s, m, links, availableFeeds, extraInfo)
+			return
 		}
-		// TODO: Better formatting
 	} else {
-		s.ChannelMessageSend(m.ChannelID, "Error! Command is of type \"!newrss <link/searchphrase>\"")
+		message = "Error! Command is of type \"!newrss <link/searchphrase>\""
 	}
+	_, err := s.ChannelMessageSend(m.ChannelID, message)
+	if err != nil {
+		log.Println("Could not send message in getRSSFeeds(), " + err.Error())
+	}
+
 }
 
 /*
@@ -67,8 +65,12 @@ func getRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 */
 func configure(s *discordgo.Session, m *discordgo.MessageCreate) {
 	words := strings.Split(m.Content, " ")
+
 	if len(words) != 2 {
-		s.ChannelMessageSend(m.ChannelID, "Invalid syntax. !configure <channel_id> or !configure <channel_name>")
+		_, err := s.ChannelMessageSend(m.ChannelID, "Invalid syntax. !configure <channel_id> or !configure <channel_name>")
+		if err != nil {
+			log.Println("Could not send message to discord in configure(), " + err.Error())
+		}
 		return
 	}
 
@@ -86,7 +88,10 @@ func configure(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if index == -1 {
-		s.ChannelMessageSend(m.ChannelID, "Invalid channel id or channel name. Try again")
+		_, err := s.ChannelMessageSend(m.ChannelID, "Invalid channel id or channel name. Try again")
+		if err != nil {
+			log.Println("Could not send message to discord in configure(), " + err.Error())
+		}
 		return
 	}
 
@@ -95,7 +100,10 @@ func configure(s *discordgo.Session, m *discordgo.MessageCreate) {
 	discordServer.ChannelID = channels[index].ID
 
 	db.updateDiscord(discordServer)
-	s.ChannelMessageSend(m.ChannelID, "Text channel with name "+channels[index].Name+" are now set as the default notification channel.")
+	_, err = s.ChannelMessageSend(m.ChannelID, "Text channel with name "+channels[index].Name+" are now set as the default notification channel.")
+	if err != nil {
+		log.Println("Could not send message to discord in configure(), " + err.Error())
+	}
 }
 
 /*
@@ -107,13 +115,19 @@ func addRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var message string
 
 	if len(availableFeeds) == 0 {
-		s.ChannelMessageSend(m.ChannelID, "Error! There are no feeds to choose from!")
+		_, err := s.ChannelMessageSend(m.ChannelID, "Error! There are no feeds to choose from!")
+		if err != nil {
+			log.Println("Could not send message to discord in addRSSFeeds(), " + err.Error())
+		}
 	} else if len(words) >= 2 {
 		// Go through each feed number the user has selected
 		for i := 1; i < len(words); i++ {
 			num, err := strconv.Atoi(words[i])
 			if err != nil {
 				s.ChannelMessageSend(m.ChannelID, "Error! The number(s) you entered were not numbers at all!")
+				if err != nil {
+					log.Println("Could not send message to discord in addRSSFeeds(), " + err.Error())
+				}
 				return
 			}
 			// Subscribe the server to the RSS feeds
@@ -125,9 +139,12 @@ func addRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 				message += "Already subscribed to RSS feed " + availableFeeds[num] + "\n"
 			}
 		}
-		s.ChannelMessageSend(m.ChannelID, message)
 	} else if len(words) < 2 {
-		s.ChannelMessageSend(m.ChannelID, "Error! You did not specify which RSS feeds you want to subscribe to!")
+		message = "Error! You did not specify which RSS feeds you want to subscribe to!"
+	}
+	_, err := s.ChannelMessageSend(m.ChannelID, message)
+	if err != nil {
+		log.Println("Could not send message to discord in addRSSFeeds(), " + err.Error())
 	}
 }
 
@@ -144,6 +161,9 @@ func removeRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 			num, err := strconv.Atoi(words[i])
 			if err != nil {
 				s.ChannelMessageSend(m.ChannelID, "Error! The number(s) you entered were not numbers at all!")
+				if err != nil {
+					log.Println("Could not send message to discord in removeRSSFeeds(), " + err.Error())
+				}
 				return
 			}
 			// Subscribe the server to the RSS feeds
@@ -155,9 +175,12 @@ func removeRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 				message += "You are not subscribed to " + subbedFeeds[num] + "\n"
 			}
 		}
-		s.ChannelMessageSend(m.ChannelID, message)
 	} else if len(words) < 2 {
-		s.ChannelMessageSend(m.ChannelID, "Error! You did not specify which RSS feeds you want to unsubscribe from!")
+		message = "Error! You did not specify which RSS feeds you want to unsubscribe from!"
+	}
+	_, err := s.ChannelMessageSend(m.ChannelID, message)
+	if err != nil {
+		log.Println("Could not send message to discord in addRSSFeeds(), " + err.Error())
 	}
 }
 
@@ -171,7 +194,10 @@ func listRSSFeeds(s *discordgo.Session, m *discordgo.MessageCreate) {
 	subscribedTo := getAllSubscribed(m.GuildID)
 
 	if len(subscribedTo) == 0 {
-		s.ChannelMessageSend(m.ChannelID, "Nothing to show :(")
+		_, err := s.ChannelMessageSend(m.ChannelID, "Nothing to show :(")
+		if err != nil {
+			log.Println("Could not send message to discord in listRSSFeeds(), " + err.Error())
+		}
 		return
 	}
 	var message string
@@ -209,7 +235,10 @@ func manageAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Only server owner is allowed to create API keys
 	if m.Author.ID != guild.OwnerID {
-		s.ChannelMessageSend(m.ChannelID, "Only the owner of the server has permission to this command.")
+		_, err := s.ChannelMessageSend(m.ChannelID, "Only the owner of the server has permission to this command.")
+		if err != nil {
+			log.Println("Could not send message to discord in addRSSFeeds(), " + err.Error())
+		}
 		return
 	}
 
@@ -240,5 +269,8 @@ func manageAPIKey(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Send a private message to the owner so he can use it
-	s.ChannelMessageSend(channel.ID, message+discord.APIKey)
+	_, err = s.ChannelMessageSend(channel.ID, message+discord.APIKey)
+	if err != nil {
+		log.Println("Could not send message to discord in manageAPIKey(), " + err.Error())
+	}
 }

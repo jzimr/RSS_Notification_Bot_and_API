@@ -119,7 +119,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	*/
 	if strings.HasPrefix(strings.ToLower(m.Content), "!commands") {
 		// TODO: Add more commands to the list
-		s.ChannelMessageSend(m.ChannelID, `
+		_, err := s.ChannelMessageSend(m.ChannelID, `
 `+"**Basic Commands:**"+`
 !commands					`+"\t\t\t\t"+`#Get a list of commands
 !configure <channel_id>		`+"\t"+` #Set a new channel where the bot should post RSS updates. Default: First channel in server.
@@ -132,6 +132,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 !newkeyrss				    `+"\t\t\t\t"+`#Get a new API key to use for the webAPI. (NOTE: this will replace the old one)
 !getkeyrss					`+"\t\t\t\t"+`  #Get the current API key.
 	`)
+
+		if err != nil {
+			log.Println("Could not send message to discord server in main(), " + err.Error())
+		}
 	}
 }
 
@@ -177,7 +181,10 @@ func embedMessage(s *discordgo.Session, channelid string, rss Channel) {
 	}
 	Embed.Image = &EmbedImage
 
-	s.ChannelMessageSendEmbed(channelid, &Embed)
+	_, err := s.ChannelMessageSendEmbed(channelid, &Embed)
+	if err != nil {
+		log.Println("Could not send message to discord server in embedMessage(), " + err.Error())
+	}
 }
 
 func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, rssFeeds []string, numberedFeeds map[int]string, extraInfo string) {
@@ -208,5 +215,8 @@ func RSSListEmbed(s *discordgo.Session, m *discordgo.MessageCreate, rssFeeds []s
 		RssListEmbed.Footer = &RssListEmbedFooter
 	}
 
-	s.ChannelMessageSendEmbed(m.ChannelID, &RssListEmbed)
+	_, err := s.ChannelMessageSendEmbed(m.ChannelID, &RssListEmbed)
+	if err != nil {
+		log.Println("Could not send message to discord server in RSSListEmbed(), " + err.Error())
+	}
 }

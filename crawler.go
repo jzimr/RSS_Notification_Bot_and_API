@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"golang.org/x/net/html"
 )
@@ -64,12 +63,13 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 	}
 	defer resp.Body.Close()
 
-	clock := time.Now()
-
 	// bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	// fmt.Println(string(bodyBytes))
 
 	z := html.NewTokenizer(resp.Body)
+
+	// Check if end of document
+	isDone := false
 
 	for {
 		tt := z.Next()
@@ -77,14 +77,14 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 		switch {
 		case tt == html.ErrorToken:
 			// End of the document, we're done
-			return
+			isDone = true
+			break
 		case tt == html.StartTagToken:
 			t := z.Token()
 
 			for _, a := range t.Attr {
 				// Limit RSS search to max 20 links
 				if len(rssLinks) >= 20 {
-					fmt.Println(time.Since(clock).Seconds())
 					return rssLinks
 				}
 
@@ -106,11 +106,10 @@ func fetchRSSLinks(URL string) (rssLinks []string) {
 				}
 			}
 		}
+		if isDone {
+			break
+		}
 	}
-	duration := time.Since(clock).Seconds()
-
-	fmt.Println(duration)
-
 	return rssLinks
 }
 
