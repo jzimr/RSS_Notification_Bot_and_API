@@ -57,7 +57,6 @@ func TestCrawler(t *testing.T) {
 		"www.nrk.no",
 		"nrk.no",
 		"nrk",
-		"n",
 		"bbc.com",
 		"http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",
 	}
