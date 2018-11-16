@@ -92,7 +92,7 @@ See "For API" under Discord bot
 
 # Original Project Plan
 
-Our plan was to create a RSS subscription service with discord. The user invites a bot and can then choose what RSS feeds they want to subscribe to by typing a keyword (e.g. nrk) or the whole RSS link. Once the RSS feed updates, the user will get a notification on discord. In addition we'll have a web API which has similiar functions as the discord bot, and where you're able to POST new RSS links and GET recent RSS notifications in JSON format. We will also provide a simple GUI on Heroku where the admin is able to customize the bot and add new RSS links from there as well. This will mostly work as a site where you can configure your bot.
+Our plan was to create a RSS subscription service with discord. The user invites a bot and can then choose what RSS feeds they want to subscribe to by typing a keyword (e.g. nrk) or the whole RSS link. Once the RSS feed updates, the user will get a notification on discord. In addition we'll have a web API where you're able to POST new RSS links and GET RSS subscriptions. We will also provide a simple GUI on Heroku where the admin is able to customize the bot and add new RSS links from there as well. This will mostly work as a site where you can configure your bot.
 
 ## What has/has not been achieved
 
@@ -107,8 +107,8 @@ It was planned that this service could be used by many discord servers at once, 
 
 | Person        | Work hours    |
 | ------------- |:-------------:|
-|               |               |
-|               |               |
-|               |               |
+| mortespj      |               |
+| andregg       |               |
+| janzim        |               |
 
 
