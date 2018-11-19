@@ -113,6 +113,6 @@ It was planned that this service could be used by many discord servers at once, 
 | ------------- |:-------------:|
 | mortespj      |      28       |
 | andregg       |      25       |
-| janzim        |               |
+| janzim        |      25       |
 
 
