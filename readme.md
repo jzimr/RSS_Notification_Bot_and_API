@@ -112,7 +112,7 @@ It was planned that this service could be used by many discord servers at once, 
 | Person        | Work hours    |
 | ------------- |:-------------:|
 | mortespj      |      28       |
-| andregg       |               |
+| andregg       |      25       |
 | janzim        |               |
 
 
