@@ -135,7 +135,7 @@ func Test_listRss(t *testing.T) {
 		return
 	}
 
-	var a []RSS
+	var a []string
 	err = json.NewDecoder(resp.Body).Decode(&a)
 	if err != nil {
 		t.Errorf("Error decoding, %s", err)
@@ -172,7 +172,7 @@ func Test_listAllRss(t *testing.T) {
 		return
 	}
 
-	var a []RSS
+	var a []string
 	err = json.NewDecoder(resp.Body).Decode(&a)
 	if err != nil {
 		t.Errorf("Error decoding, %s", err)
